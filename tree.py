@@ -53,6 +53,8 @@ On retrouve bien nos 8 possibilites.
 def recursive_tree(variable, formul):
     """
     On construit la racine
+
+    Fournit toutes les assignations satisfiant la formule
     """
 
     interp = {variable[0]: False}
@@ -89,6 +91,9 @@ def build_and_search(variable, interp, formul):
 
 
 def fifo(variable, formul):
+    """
+    Fournit Une assignation valide pour la formule
+    """
     deck = deque()
 
     index_by_name = dict(zip(variable, range(len(variable))))
