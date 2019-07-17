@@ -1,15 +1,15 @@
-from util import *
+from utils import validate_and_litterals
 from tree import *
 
 
 if __name__ == '__main__':
     prop = "x and not y"
-    man = Manager(prop)
+    litts = validate_and_litterals(prop)
 
     prop2 = "x and ( not y or z )"
-    man2 = Manager(prop2)
+    litts2 = validate_and_litterals(prop2)
 
-    print(recursive_tree(man.litterals, prop))
+    print(recursive_tree(litts, prop))
 
-    print(fifo(man2.litterals, prop2))
-    print(recursive_tree(man2.litterals, prop2))
+    print(fifo(litts2, prop2))
+    print(recursive_tree(litts2, prop2))

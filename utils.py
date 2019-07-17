@@ -6,14 +6,10 @@ mentionnes au-dessus
 
 Exemple: "x and not (y or z)"
 
-CLAUSE DISJONCTIVE de la forme:
-"(x or y or not x or ...)"
-
-(avec ou sans les parentheses)
 """
 
 
-def litterals(prop):
+def variables(prop):
     """
     Retourne seulement les litteraux sans tester la validiter
     de la prop. 
@@ -26,7 +22,7 @@ def litterals(prop):
     return list(prop.replace(' ', ''))
 
 
-def validate_and_litterals(prop):
+def validate(prop):
     """
     Verifie la proposition de telle sorte que ce soit une formule
     booleenne valide.
@@ -40,11 +36,11 @@ def validate_and_litterals(prop):
     if prop is None:
         return
 
-    litts = litterals(prop)
+    variabs = variables(prop)
 
     dict_lit = {}
 
-    for l in litts:
+    for l in variabs:
         dict_lit[l] = False
 
     # we test it
@@ -52,10 +48,10 @@ def validate_and_litterals(prop):
 
     # we past the test
     # the litterals
-    return litts
+    return variabs
 
 
-def evaluate(clause, interpretation):
+def evaluate(clause, interpretation, variabs=None):
     """
     Utile pour evaluer une formule sans assigner toutes les variables.
 
@@ -69,33 +65,21 @@ def evaluate(clause, interpretation):
     interpretation: dict
     """
 
-    litts = litterals(clause)
+    variabs = variables(clause) if variabs is None else variabs
 
-    for litt in litts:
-        if litt not in interpretation:
-            interpretation[litt] = False
+    for var in variabs:
+        if var not in interpretation:
+            interpretation[var] = False
 
     return eval(clause, None, interpretation)
 
 
-def CNF_clauses(prop):
-    """
-    Utilitaire pour obtenir les clauses d'une formule sous forme 
-    CNF ou Formule Normale Conjonctive donc de la forme:
-
-    "(a or b or ...) and (c or d or ...) ... "
-    """
-    return prop.split('and')
-
-
 if __name__ == '__main__':
     prop = "x and not (y or z)"
+    
     print(prop)
-    print(litterals(prop))
-    print(validate_and_litterals(prop))
 
     print(evaluate(prop, {'x': True}))
 
     print(evaluate('(x or y or z)', {'z': False}))
 
-    print(CNF_clauses("(a or b or c ) and (sdfsdfs)"))

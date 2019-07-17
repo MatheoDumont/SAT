@@ -127,3 +127,9 @@ def fifo(variable, formul):
                 return interp
 
     return {}
+
+
+def DPLL(formule, litteraux):
+
+    def recursive(formule, litteraux):
+        pass
