@@ -1,4 +1,6 @@
 from collections import deque
+from CNF_utils import evaluate_assign_CNF
+from copy import copy, deepcopy
 
 """
 Trying to solve a SAT problem with a search tree
@@ -129,7 +131,57 @@ def fifo(variable, formul):
     return {}
 
 
-def DPLL(formule, litteraux):
+def DPLL(CNF, variables, nb_iter):
 
-    def recursive(formule, litteraux):
-        pass
+    interp = {}
+    last_epoque = None
+
+    # tant que la taille de l'interpretation augmente on continue
+    # s'arrete quand pts fixe trouve
+    while last_epoque is None or len(interp) != last_epoque:
+
+        # on force l'affectation des clauses unitaires
+        for clause in CNF:
+            for litteral in clause:
+                if len(litteral) == 1:
+                    if 'not' in litteral:
+                        interp[litteral.replace('not', '').strip()] = False
+                    else:
+                        interp[litteral.strip()] = True
+
+        CNF = evaluate_assign_CNF(CNF, interp)
+
+        if CNF is False:
+            return False
+        elif CNF is True:
+            return interp
+        else:
+            last_epoque = len(interp)
+            
+    print('---------------------------------------')
+    print(nb_iter)
+    print(CNF)
+
+    left = evaluate_assign_CNF(deepcopy(CNF), {variables[0]: False})
+    right = evaluate_assign_CNF(CNF, {variables[0]: True})
+
+    if left is True:
+        return {variables[0]: False}
+    elif right is True:
+        return {variables[0]: True}
+    elif left is False and right is False:
+        return False
+
+    if left is not False:
+        res = DPLL(left, variables[1:], nb_iter+1)
+
+        if res is not False:
+            return {**dict([(variables[0], False)]), **res}
+
+    if right is not False:
+        res = DPLL(right, variables[1:], nb_iter+1)
+
+        if res is not False:
+            return {**dict([(variables[0], True)]), **res}
+
+    return False

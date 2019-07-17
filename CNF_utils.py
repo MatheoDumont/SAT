@@ -55,43 +55,22 @@ def CNF_clauses(prop):
     return clauses
 
 
-def is_list_of_clause(entry):
-    is_listoflist = False
-    # si une list de clause
-    try:
-        is_listoflist = type(entry[0]) is list
-
-    except Exception as e:
-        # rien a faire
-        pass
-
-    return is_listoflist
-
-
-def variables_CNF(entry):
+def CNF_variables(CNF):
     """
-    'entry' peut etre soit une clause 
-    soit une list de clause 
+    'entry' doit etre issue de CNF_clauses()
     """
     variabs = set()
 
-    if is_list_of_clause(entry):
-        for clause in entry:
-            for var in clause:
-                var = var.replace('not', '').strip()
-                if var not in variabs:
-                    variabs.add(var)
-
-    else:
-        for var in entry:
+    for clause in CNF:
+        for var in clause:
             var = var.replace('not', '').strip()
             if var not in variabs:
                 variabs.add(var)
 
-    return variabs
+    return list(variabs)
 
 
-def evaluate_CNF(entry, interpretation):
+def evaluate_clause(entry, interpretation):
     """
     Evalue une clause avec une interpretation des variables contenues dans entry
     """
@@ -104,125 +83,91 @@ def evaluate_CNF(entry, interpretation):
     return eval(evaluation, None, interpretation)
 
 
-def evaluate_assign(entry, interpretation):
+def evaluate_assign_CNF(entry, interpretation):
     """
 
-    Assigne une variable ou plusieurs variables contenues dans une list de 
-    variable ou dans une list de clause.
+    Assigne une variable ou plusieurs variables contenues dans une list de clause.
 
-    Pour une clause, si les assignations la rende SAT, renvoie True
-    sinon renvoie la clause sans la variable consideree comme 
-    fausse: clause - interpretation
+    Si une clause est valide, on la supprime de la list de clause.
+    Si elle n'est pas valide, cela signifie que les variables proposees 
+    dans l'interpretation ne servent pas.
+    On regarde donc chaque litteral de la clause pour le supprimer de la clause
+    s'il est present dans l'interpretation.
 
-    Pour une list de clause, renvoie cette list en assignant la ou les variable(s)
-    avec leurs interpretations dans les clauses ou elles apparaissent.
-    Si cela valide l'une des clauses, alors celle-ci est supprimee de la list.
-    Si toutes les clauses sont supprimes ainsi alors renvoie True(SAT).
+    Si une clause se retrouve vide par ce procede, alors l'interpretation 
+    rend la formule UNSAT, et donc la fonction retourne False.
 
-    Dans le cas une interpretation rend une clause fausse
-    et que toutes les variables de cette clause sont presente dans
-    l'interpretation, retourne False.
+    A la fin de l'execution, si la list de clause est vide, et donc que toutes
+    les clauses ont ete valides, alors retourne True.
 
-    Exemple:
-
-        interp = {'x': True, 'y': False}
-        entry = "not x or y"
-
-        return False if not evaluate(entry, interp) and variables(entry) == interp
-
+    En complexite, le pire cas est celui ou interpretation est vide.
     """
 
     if len(entry) == 0:
         return True
 
-    if is_list_of_clause(entry):
+    # Au cas ou, on retourne entry et non False car on ne sait pas
+    # vu qu'il n'y pas de variables
+    if len(interpretation) == 0:
+        return entry
 
-        i = 0
-        while i < len(entry):
+    i = 0
+    while i < len(entry):
 
-            if evaluate_CNF(entry[i], interpretation):
-                del entry[i]
+        if evaluate_clause(entry[i], interpretation):
+            del entry[i]
 
-            else:
-
-                j = 0
-                while j < len(entry[i]):
-                    if entry[i][j].replace('not', '').strip() in interpretation:
-                        del entry[i][j]
-                    else:
-                        j += 1
-
-                    if len(entry[i]) == 0:
-                        return False
-
-                i += 1
-
-        if len(entry) == 0:
-            return True
-
-    else:
-
-        if evaluate_CNF(entry, interpretation):
-            return True
         else:
-            i = 0
-            while i < len(entry):
-                if entry[i].replace('not', '').strip() in interpretation:
-                    del entry[i]
-                else:
-                    i += 1
 
-                if len(entry) == 0:
+            j = 0
+            while j < len(entry[i]):
+                if entry[i][j].replace('not', '').strip() in interpretation:
+                    del entry[i][j]
+                else:
+                    j += 1
+
+                if len(entry[i]) == 0:
                     return False
+
+            i += 1
+
+    if len(entry) == 0:
+        return True
+
     return entry
 
 
-if __name__ == '__main__':
-    cnf = "(x or y) and (not x or z)"
-    print(cnf)
+# if __name__ == '__main__':
+#     cnf = "(x or y) and (not x or z)"
+#     print(cnf)
 
-    print("-------------------CNF_clauses------------------")
-    clauses = CNF_clauses(cnf)
-    print(clauses)
+#     print("-------------------CNF_clauses------------------")
+#     clauses = CNF_clauses(cnf)
+#     print(clauses)
 
-    print("-------------------variables--------------------")
-    print(variables_CNF(clauses))
-    print(variables_CNF(clauses[0]))
+#     print("-------------------variables--------------------")
+#     print(variables_CNF(clauses))
+#     print(variables_CNF(clauses[0]))
 
-    print("-------------------evaluate---------------------")
-    print(evaluate_CNF(clauses[0], {'x': True}))  # True
-    print(evaluate_CNF(clauses[1], {'x': True}))  # False
+#     print("-------------------evaluate---------------------")
+#     print(evaluate_clause(clauses[0], {'x': True}))  # True
+#     print(evaluate_clause(clauses[1], {'x': True}))  # False
 
-    """
-    4 cas a verifier pour evaluate_assign:
-    
-    Pour une list de clause
-        1) retourne True donc valide entry avec interp donne
-        2) retourne False donc invalide entry avec interp donne
-        3) rend list de clause invalide et assigne(donc avec des clauses ou litteraux supprimes)
+#     """
+#     3 cas a verifier pour evaluate_assign:
 
-    Pour une clause
-        4) retourne True donc valide entry avec interp donne
-        5) retourne False donc invalide entry avec interp donne
-        6) retourne la clause invalide et assigne(donc avec des litteraux supprimes)
-    """
+#     Pour une list de clause
+#         1) retourne True donc valide entry avec interp donne
+#         2) retourne False donc invalide entry avec interp donne
+#         3) rend list de clause invalide et assigne(donc avec des clauses ou litteraux supprimes)
+#     """
 
-    print("------------------evaluate_assign---------------")
-    # 1)
-    print(evaluate_assign(deepcopy(clauses), {'x': True, 'z': True}))
+#     print("------------------evaluate_assign---------------")
+#     # 1)
+#     print(evaluate_assign_CNF(deepcopy(clauses), {'x': True, 'z': True}))
 
-    # 2)
-    print(evaluate_assign(deepcopy(clauses), {'x': True, 'z': False}))
+#     # 2)
+#     print(evaluate_assign_CNF(deepcopy(clauses), {'x': True, 'z': False}))
 
-    # 3)
-    print(evaluate_assign(deepcopy(clauses), {'x': True}))
-
-    # 4)
-    print(evaluate_assign(copy(clauses[0]), {'x': True}))
-
-    # 5)
-    print(evaluate_assign(copy(clauses[0]), {'x': False, 'y': False}))
-
-    # 6)
-    print(evaluate_assign(copy(clauses), {'x': False}))
-
+#     # 3)
+#     print(evaluate_assign_CNF(deepcopy(clauses), {'x': True}))
