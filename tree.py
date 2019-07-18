@@ -131,9 +131,9 @@ def fifo(variable, formul):
     return {}
 
 
-def DPLL(CNF, variables, nb_iter):
+def DPLL(CNF, variables):
 
-    interp = {}
+    interp = {} 
     last_epoque = None
 
     # tant que la taille de l'interpretation augmente on continue
@@ -142,12 +142,11 @@ def DPLL(CNF, variables, nb_iter):
 
         # on force l'affectation des clauses unitaires
         for clause in CNF:
-            for litteral in clause:
-                if len(litteral) == 1:
-                    if 'not' in litteral:
-                        interp[litteral.replace('not', '').strip()] = False
-                    else:
-                        interp[litteral.strip()] = True
+            if len(clause) == 1:
+                if 'not' in clause[0]:
+                    interp[clause[0].replace('not', '').strip()] = False
+                else:
+                    interp[clause[0].strip()] = True
 
         CNF = evaluate_assign_CNF(CNF, interp)
 
@@ -157,10 +156,6 @@ def DPLL(CNF, variables, nb_iter):
             return interp
         else:
             last_epoque = len(interp)
-            
-    print('---------------------------------------')
-    print(nb_iter)
-    print(CNF)
 
     left = evaluate_assign_CNF(deepcopy(CNF), {variables[0]: False})
     right = evaluate_assign_CNF(CNF, {variables[0]: True})
@@ -173,13 +168,12 @@ def DPLL(CNF, variables, nb_iter):
         return False
 
     if left is not False:
-        res = DPLL(left, variables[1:], nb_iter+1)
+        res = DPLL(left, variables[1:])
 
         if res is not False:
             return {**dict([(variables[0], False)]), **res}
-
-    if right is not False:
-        res = DPLL(right, variables[1:], nb_iter+1)
+    elif right is not False:
+        res = DPLL(right, variables[1:])
 
         if res is not False:
             return {**dict([(variables[0], True)]), **res}
