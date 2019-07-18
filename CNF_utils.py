@@ -55,7 +55,7 @@ def CNF_clauses(prop):
     return clauses
 
 
-def CNF_variables(CNF):
+def CNF_variables(CNF, to_list=True):
     """
     'entry' doit etre issue de CNF_clauses()
     """
@@ -66,6 +66,9 @@ def CNF_variables(CNF):
             var = var.replace('not', '').strip()
             if var not in variabs:
                 variabs.add(var)
+
+    if to_list is True:
+        return variabs
 
     return list(variabs)
 

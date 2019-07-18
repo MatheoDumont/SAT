@@ -19,24 +19,23 @@ if __name__ == '__main__':
 
     cnf = "(x or y) and ( z or w) and (not x or w)"
     CNF = CNF_clauses(cnf)
-    variabs = CNF_variables(CNF)
-
+    set_variabs = CNF_variables(CNF)
 
     print(cnf)
     print(CNF)
-    print(variabs)
+    print(set_variabs)
 
     print("recursive_tree")
     t = time.time()
-    recursive_tree(variabs, cnf)
+    recursive_tree(list(set_variabs), cnf)
     print(time.time() - t)
 
     print("fifo")
     t = time.time()
-    fifo(variabs, cnf)
+    fifo(list(set_variabs), cnf)
     print(time.time() - t)
 
     print("DPLL")
     t = time.time()
-    print(DPLL(CNF, variabs))
+    print(DPLL(CNF, set_variabs))
     print(time.time() - t)

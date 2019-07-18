@@ -10,7 +10,7 @@ chaque noeuds possede deux fils pour leurs 2 interpretations
 possible, True et False.
 
 Une feuille dans l'arbre represente une interpretation de la
-formule propositionnelle avec une assignation possible de chaque variables
+formule propositionnelle avec une assignation possible de chaque `
 de cette formule.
 
 Le nombre d'assignations possibles = 2^n
@@ -131,51 +131,75 @@ def fifo(variable, formul):
     return {}
 
 
-def DPLL(CNF, variables):
+def DPLL(CNF, set_variables):
+    """
+    CNF: from CNF_clauses()
+    set_variables: set of variables from CNF_variables(CNF, to_list=False)
+    interp: dict()
+    """
 
-    interp = {} 
-    last_epoque = None
-
-    # tant que la taille de l'interpretation augmente on continue
-    # s'arrete quand pts fixe trouve
-    while last_epoque is None or len(interp) != last_epoque:
-
-        # on force l'affectation des clauses unitaires
-        for clause in CNF:
-            if len(clause) == 1:
-                if 'not' in clause[0]:
-                    interp[clause[0].replace('not', '').strip()] = False
-                else:
-                    interp[clause[0].strip()] = True
-
+    def nested(CNF, set_variables, interp):
         CNF = evaluate_assign_CNF(CNF, interp)
 
-        if CNF is False:
-            return False
-        elif CNF is True:
+        if CNF is True:
             return interp
-        else:
-            last_epoque = len(interp)
+        elif CNF is False:
+            return False
 
-    left = evaluate_assign_CNF(deepcopy(CNF), {variables[0]: False})
-    right = evaluate_assign_CNF(CNF, {variables[0]: True})
+        # Si la, donc CNF utilisable
+        last_epoque = None
 
-    if left is True:
-        return {variables[0]: False}
-    elif right is True:
-        return {variables[0]: True}
-    elif left is False and right is False:
+        # tant que la taille de l'interpretation augmente on continue
+        # s'arrete quand pts fixe trouve
+        while last_epoque is None or len(interp) != last_epoque:
+
+            # on force l'affectation des clauses unitaires
+            for clause in CNF:
+                if len(clause) == 1:
+                    if 'not' in clause[0]:
+                        interp[clause[0].replace('not', '').strip()] = False
+                    else:
+                        interp[clause[0].strip()] = True
+
+            CNF = evaluate_assign_CNF(CNF, interp)
+
+            if CNF is False:
+                return False
+            elif CNF is True:
+                return interp
+            else:
+                last_epoque = len(interp)
+
+        # On met a jour les variables
+        # par rapport a l'interpretation faite
+        set_variables = set_variables.difference(set(interp.keys()))
+        var = set_variables.pop()
+
+        left = nested(deepcopy(CNF), set_variables, {var: False})
+
+        # si left est valide
+        if left is not False:
+            return {**interp, **left}
+
+        # sinon on test le cote droit
+        right = nested(CNF, set_variables, {var: True})
+
+        # si right est valide
+        if right is not False:
+            return {**interp, **right}
+
+        # la formule ne peut pas etre validee avec l'interpretation actuelle
         return False
 
+    var = set_variables.pop()
+    left = nested(deepcopy(CNF), set_variables, {var: False})
+
     if left is not False:
-        res = DPLL(left, variables[1:])
+        return {**dict([(var, False)]), **left}
 
-        if res is not False:
-            return {**dict([(variables[0], False)]), **res}
-    elif right is not False:
-        res = DPLL(right, variables[1:])
+    right = nested(CNF, set_variables, {var: True})
 
-        if res is not False:
-            return {**dict([(variables[0], True)]), **res}
+    if right is not False:
+        return {**dict([(var, True)]), **right}
 
     return False
