@@ -11,7 +11,7 @@ Exemple: "x and not (y or z)"
 
 def variables(prop):
     """
-    Retourne seulement les litteraux sans tester la validiter
+    Retourne seulement les variables sans tester la validiter
     de la prop. 
 
     prop: str
@@ -19,7 +19,16 @@ def variables(prop):
     for key in _keywords:
         prop = prop.replace(key, '')
 
-    return list(prop.replace(' ', ''))
+    variabs = set()
+
+    for var in prop.split(' '):
+        if var == '' or var == ' ':
+            continue
+        var = var.strip()
+        if var not in variabs:
+            variabs.add(var)
+
+    return list(variabs)
 
 
 def validate(prop):
@@ -76,10 +85,9 @@ def evaluate(clause, interpretation, variabs=None):
 
 if __name__ == '__main__':
     prop = "x and not (y or z)"
-    
+
     print(prop)
 
     print(evaluate(prop, {'x': True}))
 
     print(evaluate('(x or y or z)', {'z': False}))
-

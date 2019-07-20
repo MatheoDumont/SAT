@@ -133,9 +133,10 @@ def fifo(variable, formul):
 
 def DPLL(CNF, set_variables):
     """
+    Algorithme DPLL
+    
     CNF: from CNF_clauses()
     set_variables: set of variables from CNF_variables(CNF, to_list=False)
-    interp: dict()
     """
 
     def nested(CNF, set_variables, interp):

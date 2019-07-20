@@ -1,11 +1,12 @@
-from utils import validate
+from utils import validate, variables
 from CNF_utils import CNF_clauses, CNF_variables
 from tree import *
+from sudoku import sudoku, formulate_sudoku
 
 import time
 
 
-if __name__ == '__main__':
+def assertion():
     prop = "x or not y"
     litts = validate(prop)
 
@@ -39,3 +40,14 @@ if __name__ == '__main__':
     t = time.time()
     print(DPLL(CNF, set_variabs))
     print(time.time() - t)
+
+
+if __name__ == '__main__':
+    clauses = formulate_sudoku(sudoku(), 3)
+    res = DPLL(clauses, CNF_variables(clauses))
+
+    for key, value in res.items():
+        if value is False:
+            del res[key]
+
+    print(res)
