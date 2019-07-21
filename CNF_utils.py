@@ -24,6 +24,39 @@ print(result) # [['x', 'y'], ['not z', 'w']]
 """
 
 
+def transform_pycosat(clauses):
+    for i in range(len(clauses)):
+        for j in range(len(clauses[i])):
+            clauses[i][j] = clauses[i][j].replace('not', '-').replace(' ', '')
+
+    for i in range(len(clauses)):
+        for j in range(len(clauses[i])):
+            clauses[i][j] = int(clauses[i][j])
+
+    return clauses
+
+
+def is_cnf(func):
+
+    def inner(*args, **kwargs):
+        error_msg_list = "'args[0]' should be 'list' of 'list'"
+        error_msg_elmt = "Elements of a 'clause' should only be 'str'"
+
+        if type(args[0]) is not list:
+            raise TypeError(f'{error_msg_list},  args[0]:{args[0]}')
+
+        for supposed_clause in args[0]:
+            if type(supposed_clause) is not list:
+                raise TypeError(f'{error_msg_list},  "{supposed_clause}"')
+            for el in supposed_clause:
+                if type(el) is not str:
+                    raise TypeError(f'{error_msg_elmt},  "{el}"')
+
+        return func(*args, **kwargs)
+
+    return inner
+
+
 def CNF_clauses(prop):
     """
     Utilitaire pour obtenir les clauses d'une formule sous forme 
@@ -55,6 +88,7 @@ def CNF_clauses(prop):
     return clauses
 
 
+@is_cnf
 def CNF_variables(CNF, to_list=True):
     """
     'entry' doit etre issue de CNF_clauses()
@@ -73,17 +107,28 @@ def CNF_variables(CNF, to_list=True):
     return list(variabs)
 
 
-def evaluate_clause(entry, interpretation):
+def evaluate_DC(entry, interpretation):
     """
-    Evalue une clause avec une interpretation des variables contenues dans entry
+    Evalue une clause disjonctive avec une interpretation des variables contenues dans entry
     """
 
-    evaluation = 'False'
     for litt in entry:
-        if litt.replace('not', '').strip() in interpretation:
-            evaluation = evaluation + ' or ' + litt
 
-    return eval(evaluation, None, interpretation)
+        if 'not' in litt:
+            litt = litt.replace('not', '').strip()
+
+            if litt in interpretation:
+                if interpretation[litt] is False:
+                    return True
+
+        else:
+            litt = litt.strip()
+
+            if litt in interpretation:
+                if interpretation[litt] is True:
+                    return True
+
+    return False
 
 
 def evaluate_assign_CNF(entry, interpretation):
@@ -117,7 +162,7 @@ def evaluate_assign_CNF(entry, interpretation):
     i = 0
     while i < len(entry):
 
-        if evaluate_clause(entry[i], interpretation):
+        if evaluate_DC(entry[i], interpretation):
             del entry[i]
 
         else:
@@ -153,8 +198,8 @@ def evaluate_assign_CNF(entry, interpretation):
 #     print(variables_CNF(clauses[0]))
 
 #     print("-------------------evaluate---------------------")
-#     print(evaluate_clause(clauses[0], {'x': True}))  # True
-#     print(evaluate_clause(clauses[1], {'x': True}))  # False
+#     print(evaluate_DC(clauses[0], {'x': True}))  # True
+#     print(evaluate_DC(clauses[1], {'x': True}))  # False
 
 #     """
 #     3 cas a verifier pour evaluate_assign:

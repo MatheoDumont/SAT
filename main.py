@@ -1,7 +1,7 @@
 from utils import validate, variables
 from CNF_utils import CNF_clauses, CNF_variables
 from tree import *
-from sudoku import sudoku, formulate_sudoku
+from sudoku import sudoku, formulate_sudoku, unvar
 
 import time
 
@@ -46,8 +46,20 @@ if __name__ == '__main__':
     clauses = formulate_sudoku(sudoku(), 3)
     res = DPLL(clauses, CNF_variables(clauses))
 
-    for key, value in res.items():
-        if value is False:
-            del res[key]
+    result = {}
 
-    print(res)
+    for key, val in res.items():
+        if val is True:
+            result[key] = val
+
+    print(result)
+    print(len(result))
+
+    s = sudoku()
+
+    for key, val in result.items():
+        row, column, val = unvar(key)
+        s[row][column] = val
+
+    for row in s:
+        print(row)

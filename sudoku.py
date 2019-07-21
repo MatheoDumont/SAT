@@ -8,6 +8,22 @@ formule propositionnelle
 """
 
 
+def var(row, column, value):
+    return f'x,{row},{column},{value}'
+
+
+def var_pycosat(row, column, value):
+    return f'{row}{column}{value}'
+
+
+def unvar(var):
+    """
+    return list as [row, column, value]
+    """
+    r = var.split(',')[1:]
+    return (int(r[0]), int(r[1]), int(r[2]))
+
+
 def sudoku():
     """
     Un sudoku de niveau simple
@@ -23,6 +39,54 @@ def sudoku():
         ['8', '3', '-', '-', '2', '-', '-', '5', '-'],
         ['9', '-', '-', '4', '6', '-', '-', '3', '7']
     ]
+
+
+def test_carre():
+    n = 3
+    clauses = []
+    clause = []
+
+    for i in range(n):
+        for j in range(n):
+            clause = []
+
+            for value in range(1, n * n + 1):
+                clause.append(var(i, j, value))
+
+            clauses.extend([clause])
+
+    for row in range(n):
+        for column in range(n):
+            for value in range(1, n*n+1):
+                for col_pair in range(column + 1, n):
+                    clauses.append([
+                        f'not {var(row, column, value)}',
+                        f'not {var(row, col_pair, value)}'
+                    ])
+
+    for column in range(n):
+        for row in range(n):
+            for value in range(1, n*n+1):
+                for row_pair in range(row + 1, n):
+                    clauses.append([
+                        f'not {var(row, column, value)}',
+                        f'not {var(row_pair, column, value)}'
+                    ])
+
+    for row in range(n):
+        for col in range(n):
+            for value in range(1, n*n+1):
+                for row_pair in range(row, n):
+                    for column_pair in range(column, n):
+                        if column_pair == column:
+                            continue
+
+                        clauses.append([
+                            f'not {var(row, column, value)}',
+                            f'not {var(row_pair, column_pair, value)}'
+                        ])
+
+    return clauses
 
 
 def test_ligne():
@@ -59,20 +123,12 @@ def test_ligne():
         for i in range(0, length):
             for k in range(i + 1, length):
                 # xand
-                clauses.append([f'not x{i}{value}', f'not x{k}{value}'])
+                clauses.append([
+                    f'not x{i}{value}',
+                    f'not x{k}{value}'
+                ])
 
     return clauses
-
-
-def var(row, column, value):
-    return f'x,{row},{column},{value}'
-
-
-def unvar(var):
-    """
-    return list as [row, column, value]
-    """
-    return var.split(',')[1:]
 
 
 def formulate_sudoku(sudoku, n):
@@ -95,6 +151,7 @@ def formulate_sudoku(sudoku, n):
     """
     # Conjonctions de disjonctions
     clauses = []
+
     clause = []
     squared = n * n
 
@@ -102,15 +159,18 @@ def formulate_sudoku(sudoku, n):
     for row in range(squared):
         for column in range(squared):
             if sudoku[row][column] != '-':
-                clauses.extend([var(row, column, int(sudoku[row][column]))])
+                clauses.append(
+                    [
+                        var(row, column, int(sudoku[row][column]))
+                    ])
 
     # 1)
     for row in range(squared):
         for column in range(squared):
-            clause.clear()
-            for value in range(1, squared):
+            clause = []
+            for value in range(1, squared + 1):
                 clause.append(var(row, column, value))
-            clauses.extend(clause)
+            clauses.extend([clause])
 
     # 2)
     """
@@ -127,9 +187,9 @@ def formulate_sudoku(sudoku, n):
     """
     for row in range(squared):
         for column in range(squared):
-            for value in range(1, squared):
-                for pair in range(row, squared):
-                    clauses.extend([
+            for value in range(1, squared + 1):
+                for pair in range(column + 1, squared):
+                    clauses.append([
                         f'not {var(row, column, value)}',
                         f'not {var(row, pair, value)}'
                     ])
@@ -138,9 +198,9 @@ def formulate_sudoku(sudoku, n):
     # Meme proceder pour les colonnes que pour les lignes
     for column in range(squared):
         for row in range(squared):
-            for value in range(1, squared):
-                for pair in range(row, squared):
-                    clauses.extend([
+            for value in range(1, squared + 1):
+                for pair in range(row + 1, squared):
+                    clauses.append([
                         f'not {var(row, column, value)}',
                         f'not {var(pair, column, value)}'
                     ])
@@ -165,32 +225,25 @@ def formulate_sudoku(sudoku, n):
        8 [-,-,-,-,-,-,-,-,-]
        = c+j
     """
-    for row in range(0, squared, n):
-        for column in range(0, squared, n):
+    for y_case in range(0, squared, n):
+        for x_case in range(0, squared, n):
 
-            for value in range(1, squared):
+            for i in range(n):
+                for j in range(n):
 
-                for i in range(n):
-                    for j in range(n):
+                    for value in range(1, squared + 1):
 
                         for i_pair in range(i, n):
                             for j_pair in range(j, n):
-                                clauses.extend([
-                                    f'not {var(row+i, column+j, value)}',
-                                    f'not {var(row+i+i_pair, column+j+j_pair, value)}'
+                                # Pour ne pas avoir (not x or not x)
+                                if j_pair == j:
+                                    continue
+
+                                clauses.append([
+                                    f'not {var(y_case+i, x_case+j, value)}',
+                                    f'not {var(y_case+i_pair, x_case+j_pair, value)}'
                                 ])
 
     return clauses
 
 
-if __name__ == '__main__':
-    clauses = test_ligne()
-    print(clauses)
-    res = DPLL(clauses, CNF_variables(clauses))
-
-    actual_res = {}
-    for key, value in res.items():
-        if value is True:
-            actual_res[key] = value
-
-    print(actual_res)

@@ -134,12 +134,13 @@ def fifo(variable, formul):
 def DPLL(CNF, set_variables):
     """
     Algorithme DPLL
-    
+
     CNF: from CNF_clauses()
     set_variables: set of variables from CNF_variables(CNF, to_list=False)
     """
 
     def nested(CNF, set_variables, interp):
+
         CNF = evaluate_assign_CNF(CNF, interp)
 
         if CNF is True:
@@ -157,10 +158,21 @@ def DPLL(CNF, set_variables):
             # on force l'affectation des clauses unitaires
             for clause in CNF:
                 if len(clause) == 1:
+                    to_be_interpreted = None
+                    lit = None
+
                     if 'not' in clause[0]:
-                        interp[clause[0].replace('not', '').strip()] = False
+                        lit = clause[0].replace('not', '').strip()
+                        to_be_interpreted = False
                     else:
-                        interp[clause[0].strip()] = True
+                        lit = clause[0].strip()
+                        to_be_interpreted = True
+
+                    if lit in interp:
+                        if interp[lit] is not to_be_interpreted:
+                            return False
+                    else:
+                        interp[lit] = to_be_interpreted
 
             CNF = evaluate_assign_CNF(CNF, interp)
 
@@ -193,6 +205,7 @@ def DPLL(CNF, set_variables):
         return False
 
     var = set_variables.pop()
+
     left = nested(deepcopy(CNF), set_variables, {var: False})
 
     if left is not False:
