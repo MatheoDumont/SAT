@@ -1,5 +1,5 @@
 from collections import deque
-from CNF_utils import evaluate_assign_CNF
+from cnf_utils import evaluate_assign_CNF
 from copy import copy, deepcopy
 
 """
@@ -141,12 +141,13 @@ def DPLL(CNF, set_variables):
 
     def nested(CNF, set_variables, interp):
 
-        CNF = evaluate_assign_CNF(CNF, interp)
+        if interp:
+            CNF = evaluate_assign_CNF(CNF, interp)
 
-        if CNF is True:
-            return interp
-        elif CNF is False:
-            return False
+            if CNF is True:
+                return interp
+            elif CNF is False:
+                return False
 
         # Si la, donc CNF utilisable
         last_epoque = None
@@ -159,13 +160,11 @@ def DPLL(CNF, set_variables):
             for clause in CNF:
                 if len(clause) == 1:
                     to_be_interpreted = None
-                    lit = None
+                    lit = abs(clause[0])
 
-                    if 'not' in clause[0]:
-                        lit = clause[0].replace('not', '').strip()
+                    if clause[0] < 0:
                         to_be_interpreted = False
                     else:
-                        lit = clause[0].strip()
                         to_be_interpreted = True
 
                     if lit in interp:
@@ -204,16 +203,4 @@ def DPLL(CNF, set_variables):
         # la formule ne peut pas etre validee avec l'interpretation actuelle
         return False
 
-    var = set_variables.pop()
-
-    left = nested(deepcopy(CNF), set_variables, {var: False})
-
-    if left is not False:
-        return {**dict([(var, False)]), **left}
-
-    right = nested(CNF, set_variables, {var: True})
-
-    if right is not False:
-        return {**dict([(var, True)]), **right}
-
-    return False
+    return nested(CNF, set_variables, {})

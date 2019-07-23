@@ -6,6 +6,7 @@ mentionnes au-dessus
 
 Exemple: "x and not (y or z)"
 
+DEPRECATED: Not updated since
 """
 
 

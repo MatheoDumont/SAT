@@ -1,46 +1,44 @@
 from copy import copy, deepcopy
+
+import math
 """
 Ce module pourvoie des fonctions utilitaires a appliquer
-sur des formules en CNF
+sur des formules en CNF(Conjonctive normal form)
 
 Qui sont des conjonctions de disjonctions 
 
-CLAUSE DISJONCTIVE de la forme:
+Clause disjonctive de la forme:
 "(x or y or not x or ...)"
 
-Et conjonction de la forme:
+Clause Conjonctive de la forme:
 "(x and y and not x and ...)"
+
+
 
 (avec ou sans les parentheses)
 
-La fonction principale ici est CNF_clauses, elle tranforme une str
+'cnf_from_string', elle tranforme une str
 sous forme CNF en list de list de variables.
 
+Les variables doivent etres des entiers.
+
+Les litteraux de ces variables sont positifs, 
+ou negatifs pour representer des litteraux faux 
+ou vrais.
+
 Exemple:
-str_cnf = "(x or y) and ( not z or w)"
-result = CNF_clauses(str_cnf)
-print(result) # [['x', 'y'], ['not z', 'w']]
+str_cnf = "(1 or 2) and ( -3 or 4)"
+result = cnf_from_str(str_cnf)
+print(result) # [[1, 2], [-3, 4]]
 
 """
-
-
-def transform_pycosat(clauses):
-    for i in range(len(clauses)):
-        for j in range(len(clauses[i])):
-            clauses[i][j] = clauses[i][j].replace('not', '-').replace(' ', '')
-
-    for i in range(len(clauses)):
-        for j in range(len(clauses[i])):
-            clauses[i][j] = int(clauses[i][j])
-
-    return clauses
 
 
 def is_cnf(func):
 
     def inner(*args, **kwargs):
         error_msg_list = "'args[0]' should be 'list' of 'list'"
-        error_msg_elmt = "Elements of a 'clause' should only be 'str'"
+        error_msg_elmt = "Elements of a 'clause' should only be 'integer'"
 
         if type(args[0]) is not list:
             raise TypeError(f'{error_msg_list},  args[0]:{args[0]}')
@@ -49,7 +47,7 @@ def is_cnf(func):
             if type(supposed_clause) is not list:
                 raise TypeError(f'{error_msg_list},  "{supposed_clause}"')
             for el in supposed_clause:
-                if type(el) is not str:
+                if type(el) is not int:
                     raise TypeError(f'{error_msg_elmt},  "{el}"')
 
         return func(*args, **kwargs)
@@ -57,25 +55,29 @@ def is_cnf(func):
     return inner
 
 
-def CNF_clauses(prop):
+def litteral(var, false=False):
+    if false:
+        return -var
+
+    return var
+
+
+def cnf_from_str(prop):
     """
     Utilitaire pour obtenir les clauses d'une formule sous forme 
     CNF ou Formule Normale Conjonctive donc de la forme:
 
-    "(a or b or ...) and (c or not d or ...) ... "
+    "(1 or 2 or ...) and (3 or  -2 or ...) ... "
 
     Retourne un resultat sous la forme:
-    0: ['a','b']
-    1: ['c', 'not d']
+    0: [1, 2]
+    1: [3, -2]
     .
     .
     .
     n: ...
 
-    chaque clauses[i][j] est evaluable
-    tel que eval(clauses[i][j], None, {var: True})
-    ou var est le nom de la variable contenu en a 
-    clauses[i][j]
+    Return: [[var1, var2], [var3, -var4], ...]
 
     """
     splitted = prop.split('and')
@@ -83,46 +85,49 @@ def CNF_clauses(prop):
 
     for clause in splitted:
         clause = clause.replace('(', '').replace(')', '')
-        clauses.append(clause.split('or'))
+        str_clause = clause.split('or')
 
+        int_litterals = [int(el) for el in str_clause]
+
+        clauses.append(int_litterals)
+        
     return clauses
 
 
 @is_cnf
-def CNF_variables(CNF, to_list=True):
+def cnf_variables(cnf):
     """
-    'entry' doit etre issue de CNF_clauses()
+    'entry' doit etre issue de cnf_clauses()
+
+    return: 'set' de variable
     """
     variabs = set()
 
-    for clause in CNF:
+    for clause in cnf:
         for var in clause:
-            var = var.replace('not', '').strip()
+            var = abs(var)
+
             if var not in variabs:
                 variabs.add(var)
 
-    if to_list is True:
-        return variabs
-
-    return list(variabs)
+    return variabs
 
 
-def evaluate_DC(entry, interpretation):
+def evaluate_dc(entry, interpretation):
     """
     Evalue une clause disjonctive avec une interpretation des variables contenues dans entry
     """
 
     for litt in entry:
 
-        if 'not' in litt:
-            litt = litt.replace('not', '').strip()
+        if litt < 0:
+            litt = abs(litt)
 
             if litt in interpretation:
                 if interpretation[litt] is False:
                     return True
 
         else:
-            litt = litt.strip()
 
             if litt in interpretation:
                 if interpretation[litt] is True:
@@ -162,14 +167,14 @@ def evaluate_assign_CNF(entry, interpretation):
     i = 0
     while i < len(entry):
 
-        if evaluate_DC(entry[i], interpretation):
+        if evaluate_dc(entry[i], interpretation):
             del entry[i]
 
         else:
 
             j = 0
             while j < len(entry[i]):
-                if entry[i][j].replace('not', '').strip() in interpretation:
+                if abs(entry[i][j]) in interpretation:
                     del entry[i][j]
                 else:
                     j += 1

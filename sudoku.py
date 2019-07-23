@@ -1,5 +1,5 @@
-from tree import DPLL
-from CNF_utils import CNF_variables
+from cnf_utils import cnf_variables, litteral
+
 import copy
 import math
 """
@@ -11,7 +11,7 @@ formule propositionnelle
 
 
 def var(row, column, value):
-    return f'x,{row},{column},{value}'
+    return int(f'{row}{column}{value}')
 
 
 def var_pycosat(row, column, value):
@@ -22,8 +22,15 @@ def unvar(var):
     """
     return list as [row, column, value]
     """
-    r = var.split(',')[1:]
-    return (int(r[0]), int(r[1]), int(r[2]))
+
+    var = str(var)
+
+    if len(var) == 1:
+        return 0, 0, int(var)
+    elif len(var) == 2:
+        return 0, int(var[0]), int(var[1])
+    
+    return (int(var[0]), int(var[1]), int(var[2]))
 
 
 def display(s_start, dict_s, n):
@@ -51,7 +58,7 @@ def display(s_start, dict_s, n):
             s_end[row][col] = val
 
     print("############### Before ################\n")
-    
+
     printer(s_start, n)
     print()
 
@@ -94,20 +101,20 @@ def test_carre():
 
     for row in range(n):
         for column in range(n):
-            for value in range(1, n*n+1):
+            for value in range(1, pow(n, 2) + 1):
                 for col_pair in range(column + 1, n):
                     clauses.append([
-                        f'not {var(row, column, value)}',
-                        f'not {var(row, col_pair, value)}'
+                        litteral(var(row, column, value), false=True),
+                        litteral(var(row, col_pair, value), false=True)
                     ])
 
     for column in range(n):
         for row in range(n):
-            for value in range(1, n*n+1):
+            for value in range(1, pow(n, 2) + 1):
                 for row_pair in range(row + 1, n):
                     clauses.append([
-                        f'not {var(row, column, value)}',
-                        f'not {var(row_pair, column, value)}'
+                        litteral(var(row, column, value), false=True),
+                        litteral(var(row_pair, column, value), false=True)
                     ])
 
     for row in range(n):
@@ -227,8 +234,8 @@ def formulate_sudoku(sudoku, n):
             for value in range(1, squared + 1):
                 for pair in range(column + 1, squared):
                     clauses.append([
-                        f'not {var(row, column, value)}',
-                        f'not {var(row, pair, value)}'
+                        litteral(var(row, column, value), false=True),
+                        litteral(var(row, pair, value), false=True)
                     ])
 
     # 3)
@@ -238,8 +245,8 @@ def formulate_sudoku(sudoku, n):
             for value in range(1, squared + 1):
                 for pair in range(row + 1, squared):
                     clauses.append([
-                        f'not {var(row, column, value)}',
-                        f'not {var(pair, column, value)}'
+                        litteral(var(row, column, value), false=True),
+                        litteral(var(pair, column, value), false=True)
                     ])
 
     # 4)
@@ -277,8 +284,10 @@ def formulate_sudoku(sudoku, n):
                                     continue
 
                                 clauses.append([
-                                    f'not {var(y_case+i, x_case+j, value)}',
-                                    f'not {var(y_case+i_pair, x_case+j_pair, value)}'
+                                    litteral(
+                                        var(y_case + i, x_case + j, value), false=True),
+                                    litteral(
+                                        var(y_case + i_pair, x_case + j_pair, value), false=True)
                                 ])
 
     return clauses

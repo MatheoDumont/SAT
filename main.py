@@ -1,7 +1,8 @@
 from utils import validate, variables
-from CNF_utils import CNF_clauses, CNF_variables
+from cnf_utils import cnf_from_str, cnf_variables
 from tree import *
 from sudoku import sudoku, formulate_sudoku, display
+import sudoku as s
 
 import time
 
@@ -44,7 +45,10 @@ def assertion():
 
 if __name__ == '__main__':
     n = 3
-    clauses = formulate_sudoku(sudoku(), n)
-    res = DPLL(clauses, CNF_variables(clauses))
 
-    display(sudoku(), res, n)
+    clauses = formulate_sudoku(sudoku(), n)
+    t = time.time()
+    res = DPLL(clauses, cnf_variables(clauses))
+
+    print(time.time() - t)
+    s.display(sudoku(), res, n)
