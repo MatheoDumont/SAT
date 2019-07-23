@@ -1,5 +1,7 @@
 from tree import DPLL
 from CNF_utils import CNF_variables
+import copy
+import math
 """
 implementation pour representer un sudoku en une
 formule propositionnelle
@@ -22,6 +24,41 @@ def unvar(var):
     """
     r = var.split(',')[1:]
     return (int(r[0]), int(r[1]), int(r[2]))
+
+
+def display(s_start, dict_s, n):
+
+    def printer(s, n):
+
+        for i in range(pow(n, 2)):
+            if i != 0 and i % n == 0:
+                print('----------------------------')
+
+            to_print = ''
+            for j in range(pow(n, 2)):
+                if j != 0 and j % n == 0:
+                    to_print += "|"
+
+                to_print += " " + str(s[i][j]) + " "
+
+            print(to_print)
+
+    s_end = copy.deepcopy(s_start)
+
+    for key, val in dict_s.items():
+        if val is True:
+            row, col, val = unvar(key)
+            s_end[row][col] = val
+
+    print("############### Before ################\n")
+    
+    printer(s_start, n)
+    print()
+
+    print("############### After  ################\n")
+
+    printer(s_end, n)
+    print()
 
 
 def sudoku():
@@ -245,5 +282,3 @@ def formulate_sudoku(sudoku, n):
                                 ])
 
     return clauses
-
-
