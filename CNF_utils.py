@@ -188,39 +188,3 @@ def evaluate_assign_CNF(entry, interpretation):
         return True
 
     return entry
-
-
-# if __name__ == '__main__':
-#     cnf = "(x or y) and (not x or z)"
-#     print(cnf)
-
-#     print("-------------------CNF_clauses------------------")
-#     clauses = CNF_clauses(cnf)
-#     print(clauses)
-
-#     print("-------------------variables--------------------")
-#     print(variables_CNF(clauses))
-#     print(variables_CNF(clauses[0]))
-
-#     print("-------------------evaluate---------------------")
-#     print(evaluate_DC(clauses[0], {'x': True}))  # True
-#     print(evaluate_DC(clauses[1], {'x': True}))  # False
-
-#     """
-#     3 cas a verifier pour evaluate_assign:
-
-#     Pour une list de clause
-#         1) retourne True donc valide entry avec interp donne
-#         2) retourne False donc invalide entry avec interp donne
-#         3) rend list de clause invalide et assigne(donc avec des clauses ou litteraux supprimes)
-#     """
-
-#     print("------------------evaluate_assign---------------")
-#     # 1)
-#     print(evaluate_assign_CNF(deepcopy(clauses), {'x': True, 'z': True}))
-
-#     # 2)
-#     print(evaluate_assign_CNF(deepcopy(clauses), {'x': True, 'z': False}))
-
-#     # 3)
-#     print(evaluate_assign_CNF(deepcopy(clauses), {'x': True}))

@@ -29,7 +29,7 @@ def unvar(var):
         return 0, 0, int(var)
     elif len(var) == 2:
         return 0, int(var[0]), int(var[1])
-    
+
     return (int(var[0]), int(var[1]), int(var[2]))
 
 
@@ -291,3 +291,30 @@ def formulate_sudoku(sudoku, n):
                                 ])
 
     return clauses
+
+
+def sudoku_generator(n, difficulty):
+    """
+    n: the size of the side of one square of the sudoku
+    difficulty: number of filled case in each square
+    """
+    row = []
+    column = []
+    square = []
+
+    for i in range(pow(n, 2)):
+        row[i] = set()
+        column[i] = set()
+
+    for i in range(n):
+        arr = []
+        for j in range(n):
+            arr.append(set())
+        square.append(arr)
+
+    for lvl_dif in range(difficulty):
+        for y_case in range(n):
+            for x_case in range(n):
+                for y in range(n):
+                    for x in range(n):
+                        val = y + x + 1
