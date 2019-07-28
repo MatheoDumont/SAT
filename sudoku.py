@@ -8,29 +8,20 @@ formule propositionnelle
 
 
 """
+global variables_sudoku
+variables_sudoku = {}
 
 
-def var(row, column, value):
-    return int(f'{row}{column}{value}')
+def var(row, column, value, s_size):
+    var = (row * s_size + column) + (pow(s_size, 2) * value - 1)
+    variables_sudoku[var] = (row, column, value)
 
-
-def var_pycosat(row, column, value):
-    return f'{row}{column}{value}'
+    return var
 
 
 def unvar(var):
-    """
-    return list as [row, column, value]
-    """
 
-    var = str(var)
-
-    if len(var) == 1:
-        return 0, 0, int(var)
-    elif len(var) == 2:
-        return 0, int(var[0]), int(var[1])
-
-    return (int(var[0]), int(var[1]), int(var[2]))
+    return variables_sudoku[var]
 
 
 def display(s_start, dict_s, n):
@@ -87,6 +78,7 @@ def sudoku():
 
 def test_carre():
     n = 3
+    squared = pow(n, 2)
     clauses = []
     clause = []
 
@@ -94,40 +86,40 @@ def test_carre():
         for j in range(n):
             clause = []
 
-            for value in range(1, n * n + 1):
+            for value in range(1, squared + 1):
                 clause.append(var(i, j, value))
 
             clauses.extend([clause])
 
     for row in range(n):
         for column in range(n):
-            for value in range(1, pow(n, 2) + 1):
+            for value in range(1, squared + 1):
                 for col_pair in range(column + 1, n):
                     clauses.append([
-                        litteral(var(row, column, value), false=True),
-                        litteral(var(row, col_pair, value), false=True)
+                        litteral(var(row, column, value, squared), false=True),
+                        litteral(var(row, col_pair, value, squared), false=True)
                     ])
 
     for column in range(n):
         for row in range(n):
-            for value in range(1, pow(n, 2) + 1):
+            for value in range(1, squared + 1):
                 for row_pair in range(row + 1, n):
                     clauses.append([
-                        litteral(var(row, column, value), false=True),
-                        litteral(var(row_pair, column, value), false=True)
+                        litteral(var(row, column, value, squared), false=True),
+                        litteral(var(row_pair, column, value, squared), false=True)
                     ])
 
     for row in range(n):
         for col in range(n):
-            for value in range(1, n*n+1):
+            for value in range(1, squared + 1):
                 for row_pair in range(row, n):
                     for column_pair in range(column, n):
                         if column_pair == column:
                             continue
 
                         clauses.append([
-                            f'not {var(row, column, value)}',
-                            f'not {var(row_pair, column_pair, value)}'
+                            f'not {var(row, column, value, squared)}',
+                            f'not {var(row_pair, column_pair, value, squared)}'
                         ])
 
     return clauses
@@ -205,7 +197,7 @@ def formulate_sudoku(sudoku, n):
             if sudoku[row][column] != '-':
                 clauses.append(
                     [
-                        var(row, column, int(sudoku[row][column]))
+                        var(row, column, int(sudoku[row][column]), squared)
                     ])
 
     # 1)
@@ -213,7 +205,7 @@ def formulate_sudoku(sudoku, n):
         for column in range(squared):
             clause = []
             for value in range(1, squared + 1):
-                clause.append(var(row, column, value))
+                clause.append(var(row, column, value, squared))
             clauses.extend([clause])
 
     # 2)
@@ -234,8 +226,8 @@ def formulate_sudoku(sudoku, n):
             for value in range(1, squared + 1):
                 for pair in range(column + 1, squared):
                     clauses.append([
-                        litteral(var(row, column, value), false=True),
-                        litteral(var(row, pair, value), false=True)
+                        litteral(var(row, column, value, squared), false=True),
+                        litteral(var(row, pair, value, squared), false=True)
                     ])
 
     # 3)
@@ -245,8 +237,8 @@ def formulate_sudoku(sudoku, n):
             for value in range(1, squared + 1):
                 for pair in range(row + 1, squared):
                     clauses.append([
-                        litteral(var(row, column, value), false=True),
-                        litteral(var(pair, column, value), false=True)
+                        litteral(var(row, column, value, squared), false=True),
+                        litteral(var(pair, column, value, squared), false=True)
                     ])
 
     # 4)
@@ -285,9 +277,9 @@ def formulate_sudoku(sudoku, n):
 
                                 clauses.append([
                                     litteral(
-                                        var(y_case + i, x_case + j, value), false=True),
+                                        var(y_case + i, x_case + j, value, squared), false=True),
                                     litteral(
-                                        var(y_case + i_pair, x_case + j_pair, value), false=True)
+                                        var(y_case + i_pair, x_case + j_pair, value, squared), false=True)
                                 ])
 
     return clauses
