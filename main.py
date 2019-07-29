@@ -1,7 +1,7 @@
 from utils import validate, variables
 from cnf_utils import cnf_from_str, cnf_variables
 from tree import *
-from sudoku import sudoku, formulate_sudoku, display
+from sudoku import sudoku, formulate_sudoku, printer, display, sudoku_generator
 import sudoku as s
 
 import time
@@ -43,12 +43,53 @@ def assertion():
     print(time.time() - t)
 
 
-if __name__ == '__main__':
-    n = 3
+def bench_s_gen():
+    print(f'BENCHMARK SUDOKU GENERATOR WITH DIFFICULTY = 4')
 
-    clauses = formulate_sudoku(sudoku(), n)
     t = time.time()
-    res = DPLL(clauses, cnf_variables(clauses))
+    s = sudoku_generator(3, 4)
+    t = time.time() - t
+    print(f'Time for // size=3 // is {t} ')
+    printer(s, 3)
 
-    print(time.time() - t)
-    s.display(sudoku(), res, n)
+    t = time.time()
+    s = sudoku_generator(4, 4)
+    t = time.time() - t
+    print(f'Time for // size=4 // is {t} ')
+    printer(s, 4)
+
+    t = time.time()
+    s = sudoku_generator(5, 4)
+    t = time.time() - t
+    print(f'Time for // size=5 // is {t} ')
+    printer(s, 5)
+
+
+def bench_sudoku_resolution():
+    s = sudoku_generator(3, 4)
+    clauses = formulate_sudoku(s, 3)
+    var = cnf_variables(clauses)
+
+    t = time.time()
+    DPLL(clauses, var)
+    print(f'Temps pour resoudre un sdk de // taille=3 // is {time.time() - t}')
+
+    s = sudoku_generator(4, 4)
+    clauses = formulate_sudoku(s, 4)
+    var = cnf_variables(clauses)
+
+    t = time.time()
+    DPLL(clauses, var)
+    print(f'Temps pour resoudre un sdk de // taille=4 // is {time.time() - t}')
+
+    s = sudoku_generator(5, 4)
+    clauses = formulate_sudoku(s, 5)
+    var = cnf_variables(clauses)
+
+    t = time.time()
+    DPLL(clauses, var)
+    print(f'Temps pour resoudre un sdk de // taille=5 // is {time.time() - t}')
+
+
+if __name__ == '__main__':
+    bench_sudoku_resolution()
