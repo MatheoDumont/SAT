@@ -1,7 +1,9 @@
 from cnf_utils import cnf_variables, litteral
 
 import copy
+import random
 import math
+from itertools import combinations
 """
 implementation pour representer un sudoku en une
 formule propositionnelle
@@ -10,6 +12,10 @@ formule propositionnelle
 """
 global variables_sudoku
 variables_sudoku = {}
+
+
+def reset_var():
+    variables_sudoku = {}
 
 
 def var(row, column, value, s_size):
@@ -24,29 +30,45 @@ def unvar(var):
     return variables_sudoku[var]
 
 
-def display(s_start, dict_s, n):
+def printer(s, n):
+    """
+    Affichage pour sudoku
+    """
 
-    def printer(s, n):
+    for i in range(pow(n, 2)):
+        if i != 0 and i % n == 0:
+            print('----------------------------')
 
-        for i in range(pow(n, 2)):
-            if i != 0 and i % n == 0:
-                print('----------------------------')
+        to_print = ''
+        for j in range(pow(n, 2)):
+            if j != 0 and j % n == 0:
+                to_print += "|"
 
-            to_print = ''
-            for j in range(pow(n, 2)):
-                if j != 0 and j % n == 0:
-                    to_print += "|"
+            to_print += " " + str(s[i][j]) + " "
 
-                to_print += " " + str(s[i][j]) + " "
+        print(to_print)
 
-            print(to_print)
 
-    s_end = copy.deepcopy(s_start)
+def translate(s, dict_s):
+    """
+    Transforme le sudoku de depart en sudoku resolu a
+    l'aide des assignations valide donnees dans dict_s
+    """
 
     for key, val in dict_s.items():
         if val is True:
             row, col, val = unvar(key)
-            s_end[row][col] = val
+            s[row][col] = val
+
+    return s
+
+
+def display(s_start, dict_s, n):
+    """
+    Affichage du sudoku de depart, puis de sa version complete.
+    """
+
+    s_end = translate(copy.deepcopy(s_start), dict_s)
 
     print("############### Before ################\n")
 
@@ -64,107 +86,18 @@ def sudoku():
     Un sudoku de niveau simple
     """
     return [
-        ['-', '-', '9', '-', '-', '-', '-', '7', '1'],
-        ['2', '-', '-', '6', '9', '8', '5', '-', '-'],
-        ['6', '5', '-', '3', '1', '-', '-', '-', '2'],
-        ['5', '6', '3', '8', '-', '1', '4', '-', '9'],
-        ['-', '9', '-', '-', '-', '-', '-', '-', '8'],
-        ['1', '-', '8', '9', '-', '2', '3', '6', '5'],
-        ['7', '-', '5', '-', '8', '3', '2', '9', '-'],
-        ['8', '3', '-', '-', '2', '-', '-', '5', '-'],
-        ['9', '-', '-', '4', '6', '-', '-', '3', '7']
+        [0, 0, 9,   0, 0, 0,   0, 7, 1],
+        [2, 0, 0,   6, 9, 8,   5, 0, 0],
+        [6, 5, 0,   3, 1, 0,   0, 0, 2],
+
+        [5, 6, 3,   8, 0, 1,   4, 0, 9],
+        [0, 9, 0,   0, 0, 0,   0, 0, 8],
+        [1, 0, 8,   9, 0, 2,   3, 6, 5],
+
+        [7, 0, 5,   0, 8, 3,   2, 9, 0],
+        [8, 3, 0,   0, 2, 0,   0, 5, 0],
+        [9, 0, 0,   4, 6, 0,   0, 3, 7]
     ]
-
-
-def test_carre():
-    n = 3
-    squared = pow(n, 2)
-    clauses = []
-    clause = []
-
-    for i in range(n):
-        for j in range(n):
-            clause = []
-
-            for value in range(1, squared + 1):
-                clause.append(var(i, j, value))
-
-            clauses.extend([clause])
-
-    for row in range(n):
-        for column in range(n):
-            for value in range(1, squared + 1):
-                for col_pair in range(column + 1, n):
-                    clauses.append([
-                        litteral(var(row, column, value, squared), false=True),
-                        litteral(var(row, col_pair, value, squared), false=True)
-                    ])
-
-    for column in range(n):
-        for row in range(n):
-            for value in range(1, squared + 1):
-                for row_pair in range(row + 1, n):
-                    clauses.append([
-                        litteral(var(row, column, value, squared), false=True),
-                        litteral(var(row_pair, column, value, squared), false=True)
-                    ])
-
-    for row in range(n):
-        for col in range(n):
-            for value in range(1, squared + 1):
-                for row_pair in range(row, n):
-                    for column_pair in range(column, n):
-                        if column_pair == column:
-                            continue
-
-                        clauses.append([
-                            f'not {var(row, column, value, squared)}',
-                            f'not {var(row_pair, column_pair, value, squared)}'
-                        ])
-
-    return clauses
-
-
-def test_ligne():
-    """
-    Formule propositionnelle pour attribuer sur une ligne de 4 case
-    l'attribution d'une valeur in range(1, 4), ou la valeur apparait uniquement une fois
-
-    Exemple:
-        [3, 2, 1, 4]
-
-        avec {'x03: True, x12: True, x21: True, x34: True'}
-
-
-    Fonction test pour l'implementation du formulateur propositionnelle de sudoku
-
-    """
-    length = 4
-
-    clauses = []
-    clause = []
-
-    for i in range(0, length):
-        clause.clear()
-
-        for value in range(1, length + 1):
-            string = 'x' + str(i) + str(value)
-            clause.append(string)
-
-        clauses.append(list(clause))
-
-    clause.clear()
-
-    for value in range(1, length + 1):
-        for i in range(0, length):
-            for k in range(i + 1, length):
-                # xand
-                clauses.append([
-                    f'not x{i}{value}',
-                    f'not x{k}{value}'
-                ])
-
-    return clauses
 
 
 def formulate_sudoku(sudoku, n):
@@ -186,6 +119,7 @@ def formulate_sudoku(sudoku, n):
 
     """
     # Conjonctions de disjonctions
+    reset_var()
     clauses = []
 
     clause = []
@@ -194,7 +128,7 @@ def formulate_sudoku(sudoku, n):
     # Initialiser avec les nombres deja presents dans le sudoku
     for row in range(squared):
         for column in range(squared):
-            if sudoku[row][column] != '-':
+            if sudoku[row][column] != 0:
                 clauses.append(
                     [
                         var(row, column, int(sudoku[row][column]), squared)
@@ -288,25 +222,75 @@ def formulate_sudoku(sudoku, n):
 def sudoku_generator(n, difficulty):
     """
     n: the size of the side of one square of the sudoku
-    difficulty: number of filled case in each square
+    difficulty: number of filled case in each square(approximately)
     """
+
+    squared = pow(n, 2)
+
+    values = set(range(1, squared + 1))
     row = []
     column = []
+    s = []
+
+    # init du random generator
+    random.seed()
+
+    # a l'indice i se trouve la case i avec un set
+    # avec un set representant les nombres present dans la case i
     square = []
 
-    for i in range(pow(n, 2)):
-        row[i] = set()
-        column[i] = set()
+    # contrainte pour les colonnes et lignes
+    for i in range(squared):
+        row.append(set())
+        column.append(set())
 
-    for i in range(n):
-        arr = []
-        for j in range(n):
-            arr.append(set())
-        square.append(arr)
+    # contraintes pour les carres
+    for i in range(squared):
+        square.append(set())
 
-    for lvl_dif in range(difficulty):
-        for y_case in range(n):
-            for x_case in range(n):
-                for y in range(n):
-                    for x in range(n):
-                        val = y + x + 1
+    # init du sudoku avec des zeros
+    for y in range(squared):
+        l = []
+        for x in range(squared):
+            l.append(0)
+        s.append(l)
+
+    for diff in range(difficulty):
+        for y in range(n):
+            for x in range(n):
+
+                # on genere un number non-present dans le square selectionne
+                number = random.choice(
+                    list(values - set(square[y * n + x])))
+
+                # les rows ou n'est pas present number
+                r_possible = set()
+                for r in range(y * n, y * n + n):
+                    if number not in row[r]:
+                        r_possible.add(r)
+
+                # les columns ou n'est pas present number
+                c_possible = set()
+                for c in range(x * n, x * n + n):
+                    if number not in column[c]:
+                        c_possible.add(c)
+
+                possible_case = []
+
+                # on test les cases possibles (celles vide)
+                for r in r_possible:
+                    for c in c_possible:
+                        if s[r][c] == 0:
+                            possible_case.append((r, c))
+
+                if not possible_case:
+                    continue
+
+                r, c = random.choice(possible_case)
+
+                s[r][c] = number
+                column[c].add(number)
+                row[r].add(number)
+                square[y * n + x].add(number)
+
+    return s
