@@ -118,8 +118,9 @@ def formulate_sudoku(sudoku, n):
         4) chaque carre de taille n*n doit contenir qu'une seul fois un meme nombre
 
     """
-    # Conjonctions de disjonctions
     reset_var()
+
+    # Conjonctions de disjonctions
     clauses = []
 
     clause = []
@@ -129,10 +130,9 @@ def formulate_sudoku(sudoku, n):
     for row in range(squared):
         for column in range(squared):
             if sudoku[row][column] != 0:
-                clauses.append(
-                    [
-                        var(row, column, int(sudoku[row][column]), squared)
-                    ])
+                clauses.append([
+                    var(row, column, int(sudoku[row][column]), squared)
+                ])
 
     # 1)
     for row in range(squared):
@@ -140,7 +140,7 @@ def formulate_sudoku(sudoku, n):
             clause = []
             for value in range(1, squared + 1):
                 clause.append(var(row, column, value, squared))
-            clauses.extend([clause])
+            clauses.append(clause)
 
     # 2)
     """
