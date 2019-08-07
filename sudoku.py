@@ -10,15 +10,16 @@ formule propositionnelle
 
 
 """
-global variables_sudoku
 variables_sudoku = {}
 
 
 def reset_var():
+    global variables_sudoku
     variables_sudoku = {}
 
 
 def var(row, column, value, s_size):
+    global variables_sudoku
     var = (row * s_size + column) + (pow(s_size, 2) * value - 1)
     variables_sudoku[var] = (row, column, value)
 
@@ -26,7 +27,7 @@ def var(row, column, value, s_size):
 
 
 def unvar(var):
-
+    global variables_sudoku
     return variables_sudoku[var]
 
 
@@ -219,7 +220,7 @@ def formulate_sudoku(sudoku, n):
     return clauses
 
 
-def sudoku_generator(n, difficulty):
+def generate(n, difficulty):
     """
     n: the size of the side of one square of the sudoku
     difficulty: number of filled case in each square(approximately)
@@ -254,6 +255,7 @@ def sudoku_generator(n, difficulty):
         for x in range(squared):
             l.append(0)
         s.append(l)
+
 
     for diff in range(difficulty):
         for y in range(n):

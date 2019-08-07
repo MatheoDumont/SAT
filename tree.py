@@ -152,26 +152,57 @@ def DPLL(CNF, set_variables):
         # Si la, donc CNF utilisable
         last_epoque = None
 
+        """
+        Pour les litteraux avec une seul polarite,
+        (ils apparaissent dans toute la cnf seulement True ou False)
+        .
+        On peut donc les affecter pour satisfaire des clauses
+        """
+        false_lit = set()
+        true_lit = set()
+
         # tant que la taille de l'interpretation augmente on continue
         # s'arrete quand pts fixe trouve
         while last_epoque is None or len(interp) != last_epoque:
 
             # on force l'affectation des clauses unitaires
             for clause in CNF:
+
+                for lit in clause:
+                    if lit > 0 and lit not in true_lit:
+                        true_lit.add(lit)
+                    elif lit not in false_lit:
+                        false_lit.add(abs(lit))
+
                 if len(clause) == 1:
-                    to_be_interpreted = None
+                    to_be_interpreted_as = None
                     lit = abs(clause[0])
 
                     if clause[0] < 0:
-                        to_be_interpreted = False
+                        to_be_interpreted_as = False
                     else:
-                        to_be_interpreted = True
+                        to_be_interpreted_as = True
 
                     if lit in interp:
-                        if interp[lit] is not to_be_interpreted:
+                        if interp[lit] is not to_be_interpreted_as:
                             return False
                     else:
-                        interp[lit] = to_be_interpreted
+                        interp[lit] = to_be_interpreted_as
+
+            # Polarite
+            for el in true_lit - false_lit:
+                if el in interp:
+                    if not interp[el]:
+                        return False
+                else:
+                    interp[el] = True
+
+            for el in false_lit - true_lit:
+                if el in interp:
+                    if interp[el]:
+                        return False
+                else:
+                    interp[el] = False
 
             CNF = evaluate_assign_CNF(CNF, interp)
 
