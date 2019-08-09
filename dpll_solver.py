@@ -86,6 +86,60 @@ def evaluate_assign_cnf(entry, interpretation):
     return entry
 
 
+def evaluate_assign_cnf_linked(clauses, linked, interpretation):
+    """
+    clauses: list de list sous forme cnf
+    linked: dict de dict
+    interpretation: dict
+    """
+    if len(clauses) == 0:
+        return True
+
+    if len(interpretation) == 0:
+        return entry
+
+    for key, val in interpretation.items():
+        if key in linked:
+
+            for clause, pos_in_clause in linked[key].items():
+
+                if clauses[clause][pos_in_clause] > 0:
+                    if val is True:
+
+                        for var in clauses[clause]:
+
+                            if abs(var) != key:
+                                del linked[abs(var)][clause]
+
+                        del clauses[clause]
+
+                    else:
+                        del clauses[clause][pos_in_clause]
+
+                elif clauses[clause][pos_in_clause] < 0:
+                    if val is False:
+
+                        for var in clauses[clause]:
+
+                            if abs(var) != key:
+                                del linked[abs(var)][clause]
+
+                        del clauses[clause]
+
+                    else:
+                        del clauses[clause][pos_in_clause]
+
+                if len(clauses[clause]) == 0:
+                    return False
+
+            del linked[key]
+
+    if len(clauses) == 0:
+        return True
+
+    return clauses, linked
+
+
 def unit_prop_and_pure_var(CNF, interp):
     # Pour les litteraux avec une seul polarite,
     # (ils apparaissent dans toute la cnf seulement True ou False)
@@ -162,17 +216,32 @@ def choose_var(cnf):
         raise e("choose_var essaye de retourner cnf[0][0]")
 
 
-def init_var_clauses(cnf):
+def build_link(cnf):
+    """
+    Lien, pour chaque variable, on sauvegarde l'indice des clauses dans 
+    lesquelles ces variables apparaissent, ainsi que leurs position
+    dans ces clauses.
 
-    var_link_clause = dict()
+    linked = {
+        # la variable 1
+        1: {
+            # dans la clause 1456 a la position 3
+            1456: 3
+        }
+        ...
+    }
+    """
+    linked = dict()
 
     for i in range(len(cnf)):
         for j in range(len(cnf[i])):
-            if not var_link_clause[abs(clauses[i][j])] in var_link_clause:
-                var_link_clause[abs(clauses[i][j])] = []
-            var_link_clause[abs(clauses[i][j])].append((i, j))
+            if not abs(cnf[i][j]) in linked:
 
-    return var_link_clause
+                linked[abs(cnf[i][j])] = dict()
+
+            linked[abs(cnf[i][j])][i] = j
+
+    return linked
 
 
 def DPLL(CNF, interp=None):
