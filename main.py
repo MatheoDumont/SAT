@@ -1,7 +1,7 @@
 from utils import validate, variables
 from cnf_utils import cnf_from_str, cnf_variables
 from dpll_solver import DPLL
-from sudoku import sudoku, formulate_sudoku, printer, display, generate
+from sudoku import *
 
 import time
 
@@ -65,6 +65,7 @@ def bench_s_gen():
 
 
 def bench_sudoku_resolution():
+    # timeit.timeit("single_test", globals=locals())
     clauses = formulate_sudoku(sudoku(), 3)
 
     t = time.time()
@@ -85,6 +86,11 @@ def bench_sudoku_resolution():
     t = time.time()
     assert DPLL(clauses) is not False
     print(f'Temps pour resoudre un sdk de // taille=5 // is {time.time() - t}')
+
+
+def single_test():
+    clauses = formulate_sudoku(sudoku(), 3)
+    DPLL(clauses)
 
 
 if __name__ == '__main__':

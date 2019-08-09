@@ -86,7 +86,7 @@ def evaluate_assign_cnf(entry, interpretation):
     return entry
 
 
-def unit_prop_and_pure_var(CNF):
+def unit_prop_and_pure_var(CNF, interp):
     # Pour les litteraux avec une seul polarite,
     # (ils apparaissent dans toute la cnf seulement True ou False)
     # On peut donc les affecter pour satisfaire des clauses
@@ -96,14 +96,15 @@ def unit_prop_and_pure_var(CNF):
 
     # tant que la taille de l'interpretation augmente on continue
     # s'arrete quand pts fixe trouve
+    epoque = len(interp)
     last_epoque = None
-    interp = dict()
 
-    while last_epoque is None or len(interp) != last_epoque:
+    while last_epoque is None or epoque != last_epoque:
 
         # on force l'affectation des clauses unitaires
         for clause in CNF:
 
+            # Variable pure
             for lit in clause:
                 if lit > 0 and lit not in true_lit:
                     true_lit.add(lit)
@@ -125,7 +126,7 @@ def unit_prop_and_pure_var(CNF):
                 else:
                     interp[lit] = to_be_interpreted_as
 
-        # Polarite
+        # Variable pure
         for el in true_lit - false_lit:
             if el in interp:
                 if not interp[el]:
@@ -147,7 +148,8 @@ def unit_prop_and_pure_var(CNF):
         elif CNF is True:
             return interp,
         else:
-            last_epoque = len(interp)
+            last_epoque = epoque
+            epoque = len(interp)
 
     return interp, CNF
 
@@ -160,23 +162,27 @@ def choose_var(cnf):
         raise e("choose_var essaye de retourner cnf[0][0]")
 
 
+def init_var_clauses(cnf):
+
+    var_link_clause = dict()
+
+    for i in range(len(cnf)):
+        for j in range(len(cnf[i])):
+            if not var_link_clause[abs(clauses[i][j])] in var_link_clause:
+                var_link_clause[abs(clauses[i][j])] = []
+            var_link_clause[abs(clauses[i][j])].append((i, j))
+
+    return var_link_clause
+
+
 def DPLL(CNF, interp=None):
     """
     Algorithme DPLL
 
-    CNF: from CNF_clauses()
+    CNF: from cnt_utils.cnf_clauses()
     """
 
-    if interp:
-        CNF = evaluate_assign_cnf(CNF, interp)
-
-        if CNF is True:
-            return interp
-        elif CNF is False:
-            return False
-
-    # Sinon, donc satisfiabilite inconnue
-    results = unit_prop_and_pure_var(CNF)
+    results = unit_prop_and_pure_var(CNF, {} if interp is None else interp)
 
     if type(results) is tuple:
         if len(results) == 1:
@@ -192,7 +198,7 @@ def DPLL(CNF, interp=None):
 
     if sat is False:
         return False
-    
+
     return {**interp, **sat}
 
 

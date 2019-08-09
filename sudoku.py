@@ -19,8 +19,13 @@ def reset_var():
 
 
 def var(row, column, value, s_size):
+    """
+    var doit obligatoirement etre comprit dans l'intervalle:
+    [1; +infini]
+    """
     global variables_sudoku
-    var = (row * s_size + column) + (pow(s_size, 2) * value - 1)
+
+    var = (row * s_size + column) + (pow(s_size, 2) * (value - 1)) + 1 
     variables_sudoku[var] = (row, column, value)
 
     return var
@@ -98,6 +103,29 @@ def sudoku():
         [7, 0, 5,   0, 8, 3,   2, 9, 0],
         [8, 3, 0,   0, 2, 0,   0, 5, 0],
         [9, 0, 0,   4, 6, 0,   0, 3, 7]
+    ]
+
+
+def s_16():
+
+    return [
+        [0, 6, 8, 12, 0, 0, 13, 0, 1, 7, 0, 2, 0, 0, 4, 10],
+        [7, 14, 0, 10, 0, 5, 8, 1, 12, 0, 0, 13, 0, 9, 3, 16],
+        [1, 0, 5, 0, 0, 0, 11, 0, 0, 0, 14, 0, 13, 0, 12, 0],
+        [13, 15, 0, 0, 12, 0, 0, 6, 3, 0, 4, 0, 7, 11, 0, 0],
+        [0, 0, 0, 11, 0, 0, 0, 15, 0, 0, 0, 7, 0, 0, 14, 12],
+        [0, 4, 0, 0, 0, 0, 14, 12, 13, 3, 9, 0, 8, 1, 0, 0],
+        [12, 8, 14, 0, 0, 2, 0, 0, 10, 0, 1, 0, 0, 0, 0, 9],
+        [0, 2, 0, 9, 1, 8, 0, 0, 11, 16, 12, 0, 15, 0, 10, 13],
+        [5, 12, 0, 15, 0, 1, 7, 4, 0, 0, 16, 3, 10, 0, 13, 0],
+        [2, 0, 0, 0, 0, 3, 0, 9, 0, 0, 13, 0, 0, 12, 8, 5],
+        [0, 0, 4, 8, 0, 11, 15, 10, 5, 12, 0, 0, 0, 0, 9, 0],
+        [3, 16, 0, 0, 13, 0, 0, 0, 8, 0, 0, 0, 1, 0, 0, 0],
+        [0, 0, 15, 6, 0, 7, 0, 11, 14, 0, 0, 8, 0, 0, 5, 1],
+        [0, 10, 0, 14, 0, 13, 0, 0, 0, 11, 0, 0, 0, 6, 0, 7],
+        [11, 5, 1, 0, 9, 0, 0, 3, 6, 10, 7, 0, 12, 0, 15, 8],
+        [16, 7, 0, 0, 14, 0, 10, 8, 0, 1, 0, 0, 11, 13, 2, 0]
+
     ]
 
 
@@ -206,6 +234,7 @@ def formulate_sudoku(sudoku, n):
 
                         for i_pair in range(i, n):
                             for j_pair in range(j, n):
+
                                 # Pour ne pas avoir (not x or not x)
                                 if j_pair == j:
                                     continue
@@ -255,7 +284,6 @@ def generate(n, difficulty):
         for x in range(squared):
             l.append(0)
         s.append(l)
-
 
     for diff in range(difficulty):
         for y in range(n):
