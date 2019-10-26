@@ -46,19 +46,19 @@ def bench_s_gen():
     print(f'BENCHMARK SUDOKU GENERATOR WITH DIFFICULTY = 4')
 
     t = time.time()
-    s = generate(3, 4)
+    s = generate_glouton_with_verification(3)
     t = time.time() - t
     print(f'Time for // size=3 // is {t} ')
     printer(s, 3)
 
     t = time.time()
-    s = generate(4, 7)
+    s = generate_glouton_with_verification(4)
     t = time.time() - t
     print(f'Time for // size=4 // is {t} ')
     printer(s, 4)
 
     t = time.time()
-    s = generate(5, 10)
+    s = generate_glouton_with_verification(5)
     t = time.time() - t
     print(f'Time for // size=5 // is {t} ')
     printer(s, 5)
@@ -89,16 +89,32 @@ def bench_sudoku_resolution():
 
 
 def single_test():
-    clauses = formulate_sudoku(sudoku(), 3)
-    DPLL(clauses)
+    sudoku = generate_glouton_with_verification(3)
+    print(sudoku)
+
+    clauses = formulate_sudoku(sudoku, 3)
+
+    sol = DPLL(clauses)
+    print(sol)
+    display(sudoku, sol, 3)
+
+
+def get_working_test(n):
+    t = time.time()
+    sudoku = []
+    working = False
+
+    while not working:
+        sudoku = generate_glouton_with_verification(n)
+
+        clauses = formulate_sudoku(sudoku, n)
+        if DPLL(clauses):
+            working = True
+
+    print(f'Time to generate SAT sudoku // size={n} // is {time.time() - t} ')
+
+    return sudoku
 
 
 if __name__ == '__main__':
-    # sudoku = generate_glouton_with_verification(3)
-    # print(sudoku)
-    # clauses = formulate_sudoku(sudoku, 3)
-    # cnf_variables(clauses)
-    # sol = DPLL(clauses)
-    bench_sudoku_resolution()
-    
-
+    print(get_working_test(3))
