@@ -86,53 +86,57 @@ def evaluate_assign_cnf(entry, interpretation):
     return entry
 
 
-def evaluate_assign_cnf_linked(clauses, linked, interpretation):
+def evaluate_assign_cnf_linked(clauses, interpretation, linked):
     """
     clauses: list de list sous forme cnf
     linked: dict de dict
     interpretation: dict
     """
+
     if len(clauses) == 0:
         return True
 
     if len(interpretation) == 0:
         return entry
 
-    for key, val in interpretation.items():
-        if key in linked:
+    for current_var, current_var_eval in interpretation.items():
+        if current_var in linked:
 
-            for clause, pos_in_clause in linked[key].items():
+            for clause, pos_in_clause in linked[current_var].items():
 
+                to_del_clause = False
+                # Si litteral pas faux, donc > 0
                 if clauses[clause][pos_in_clause] > 0:
-                    if val is True:
+                    if current_var_eval is True:
 
-                        for var in clauses[clause]:
+                        for litteral in clauses[clause]:
 
-                            if abs(var) != key:
-                                del linked[abs(var)][clause]
+                            if abs(litteral) != current_var:
+                                del linked[abs(litteral)][clause]
 
-                        del clauses[clause]
-
+                        to_del_clause = True
                     else:
                         del clauses[clause][pos_in_clause]
 
                 elif clauses[clause][pos_in_clause] < 0:
-                    if val is False:
+                    if current_var_eval is False:
 
-                        for var in clauses[clause]:
+                        for litteral in clauses[clause]:
 
-                            if abs(var) != key:
-                                del linked[abs(var)][clause]
+                            if abs(litteral) != current_var:
+                                del linked[abs(litteral)][clause]
 
-                        del clauses[clause]
-
+                        to_del_clause = True
                     else:
+
                         del clauses[clause][pos_in_clause]
 
                 if len(clauses[clause]) == 0:
                     return False
+                elif to_del_clause:
+                    del clauses[clause]
 
-            del linked[key]
+            del linked[current_var]
 
     if len(clauses) == 0:
         return True
@@ -140,11 +144,10 @@ def evaluate_assign_cnf_linked(clauses, linked, interpretation):
     return clauses, linked
 
 
-def unit_prop_and_pure_var(CNF, interp):
+def unit_prop_and_pure_var(CNF, interp, linked):
     # Pour les litteraux avec une seul polarite,
     # (ils apparaissent dans toute la cnf seulement True ou False)
     # On peut donc les affecter pour satisfaire des clauses
-
     false_lit = set()
     true_lit = set()
 
@@ -195,17 +198,19 @@ def unit_prop_and_pure_var(CNF, interp):
             else:
                 interp[el] = False
 
-        CNF = evaluate_assign_cnf(CNF, interp)
+        results = evaluate_assign_cnf_linked(CNF, interp, linked)
 
-        if CNF is False:
+        if type(results) is tuple:
+            CNF, linked = results
+        elif results is False:
             return False
-        elif CNF is True:
+        elif results is True:
             return interp,
         else:
             last_epoque = epoque
             epoque = len(interp)
 
-    return interp, CNF
+    return interp, CNF, linked
 
 
 def choose_var(cnf):
@@ -244,26 +249,30 @@ def build_link(cnf):
     return linked
 
 
-def DPLL(CNF, interp=None):
+def DPLL(CNF, interp=None, linked=None):
     """
     Algorithme DPLL
 
-    CNF: from cnt_utils.cnf_clauses()
     """
 
-    results = unit_prop_and_pure_var(CNF, {} if interp is None else interp)
+    results = unit_prop_and_pure_var(
+        CNF,
+        {} if interp is None else interp,
+        build_link(CNF) if linked is None else linked
+    )
 
     if type(results) is tuple:
         if len(results) == 1:
             return interp
         else:
-            interp, CNF = results
+            interp, CNF, linked = results
     else:
         return False
 
     var = choose_var(CNF)
 
-    sat = DPLL(deepcopy(CNF), {var: False}) or DPLL(CNF, {var: True})
+    sat = DPLL(deepcopy(CNF), {var: False}, deepcopy(linked)
+               ) or DPLL(CNF, {var: True}, linked)
 
     if sat is False:
         return False

@@ -94,4 +94,11 @@ def single_test():
 
 
 if __name__ == '__main__':
+    # sudoku = generate_glouton_with_verification(3)
+    # print(sudoku)
+    # clauses = formulate_sudoku(sudoku, 3)
+    # cnf_variables(clauses)
+    # sol = DPLL(clauses)
     bench_sudoku_resolution()
+    
+

@@ -2,8 +2,9 @@ from cnf_utils import cnf_variables, litteral
 
 import copy
 import random
-import math
-from itertools import combinations
+from itertools import product
+
+import numpy as np
 """
 implementation pour representer un sudoku en une
 formule propositionnelle
@@ -11,6 +12,60 @@ formule propositionnelle
 
 """
 variables_sudoku = {}
+
+
+def n_sudoku(n):
+    array = list()
+
+    for i in range(0, n * n):
+        array.append(list())
+        for j in range(0, n * n):
+            array[i].append(0)
+
+    print(array)
+    return array
+
+
+def sudoku():
+    """
+    Un sudoku de niveau simple
+    """
+    return [
+        [0, 0, 9, 0, 0, 0, 0, 7, 1],
+        [2, 0, 0, 6, 9, 8, 5, 0, 0],
+        [6, 5, 0, 3, 1, 0, 0, 0, 2],
+
+        [5, 6, 3, 8, 0, 1, 4, 0, 9],
+        [0, 9, 0, 0, 0, 0, 0, 0, 8],
+        [1, 0, 8, 9, 0, 2, 3, 6, 5],
+
+        [7, 0, 5, 0, 8, 3, 2, 9, 0],
+        [8, 3, 0, 0, 2, 0, 0, 5, 0],
+        [9, 0, 0, 4, 6, 0, 0, 3, 7]
+    ]
+
+
+def s_16():
+
+    return [
+        [0, 6, 8, 12, 0, 0, 13, 0, 1, 7, 0, 2, 0, 0, 4, 10],
+        [7, 14, 0, 10, 0, 5, 8, 1, 12, 0, 0, 13, 0, 9, 3, 16],
+        [1, 0, 5, 0, 0, 0, 11, 0, 0, 0, 14, 0, 13, 0, 12, 0],
+        [13, 15, 0, 0, 12, 0, 0, 6, 3, 0, 4, 0, 7, 11, 0, 0],
+        [0, 0, 0, 11, 0, 0, 0, 15, 0, 0, 0, 7, 0, 0, 14, 12],
+        [0, 4, 0, 0, 0, 0, 14, 12, 13, 3, 9, 0, 8, 1, 0, 0],
+        [12, 8, 14, 0, 0, 2, 0, 0, 10, 0, 1, 0, 0, 0, 0, 9],
+        [0, 2, 0, 9, 1, 8, 0, 0, 11, 16, 12, 0, 15, 0, 10, 13],
+        [5, 12, 0, 15, 0, 1, 7, 4, 0, 0, 16, 3, 10, 0, 13, 0],
+        [2, 0, 0, 0, 0, 3, 0, 9, 0, 0, 13, 0, 0, 12, 8, 5],
+        [0, 0, 4, 8, 0, 11, 15, 10, 5, 12, 0, 0, 0, 0, 9, 0],
+        [3, 16, 0, 0, 13, 0, 0, 0, 8, 0, 0, 0, 1, 0, 0, 0],
+        [0, 0, 15, 6, 0, 7, 0, 11, 14, 0, 0, 8, 0, 0, 5, 1],
+        [0, 10, 0, 14, 0, 13, 0, 0, 0, 11, 0, 0, 0, 6, 0, 7],
+        [11, 5, 1, 0, 9, 0, 0, 3, 6, 10, 7, 0, 12, 0, 15, 8],
+        [16, 7, 0, 0, 14, 0, 10, 8, 0, 1, 0, 0, 11, 13, 2, 0]
+
+    ]
 
 
 def reset_var():
@@ -25,7 +80,7 @@ def var(row, column, value, s_size):
     """
     global variables_sudoku
 
-    var = (row * s_size + column) + (pow(s_size, 2) * (value - 1)) + 1 
+    var = (row * s_size + column) + (pow(s_size, 2) * (value - 1)) + 1
     variables_sudoku[var] = (row, column, value)
 
     return var
@@ -57,7 +112,7 @@ def printer(s, n):
 
 def translate(s, dict_s):
     """
-    Transforme le sudoku de depart en sudoku resolu a
+    Transforme le sudoku de depart s en sudoku resolu a
     l'aide des assignations valide donnees dans dict_s
     """
 
@@ -85,48 +140,6 @@ def display(s_start, dict_s, n):
 
     printer(s_end, n)
     print()
-
-
-def sudoku():
-    """
-    Un sudoku de niveau simple
-    """
-    return [
-        [0, 0, 9,   0, 0, 0,   0, 7, 1],
-        [2, 0, 0,   6, 9, 8,   5, 0, 0],
-        [6, 5, 0,   3, 1, 0,   0, 0, 2],
-
-        [5, 6, 3,   8, 0, 1,   4, 0, 9],
-        [0, 9, 0,   0, 0, 0,   0, 0, 8],
-        [1, 0, 8,   9, 0, 2,   3, 6, 5],
-
-        [7, 0, 5,   0, 8, 3,   2, 9, 0],
-        [8, 3, 0,   0, 2, 0,   0, 5, 0],
-        [9, 0, 0,   4, 6, 0,   0, 3, 7]
-    ]
-
-
-def s_16():
-
-    return [
-        [0, 6, 8, 12, 0, 0, 13, 0, 1, 7, 0, 2, 0, 0, 4, 10],
-        [7, 14, 0, 10, 0, 5, 8, 1, 12, 0, 0, 13, 0, 9, 3, 16],
-        [1, 0, 5, 0, 0, 0, 11, 0, 0, 0, 14, 0, 13, 0, 12, 0],
-        [13, 15, 0, 0, 12, 0, 0, 6, 3, 0, 4, 0, 7, 11, 0, 0],
-        [0, 0, 0, 11, 0, 0, 0, 15, 0, 0, 0, 7, 0, 0, 14, 12],
-        [0, 4, 0, 0, 0, 0, 14, 12, 13, 3, 9, 0, 8, 1, 0, 0],
-        [12, 8, 14, 0, 0, 2, 0, 0, 10, 0, 1, 0, 0, 0, 0, 9],
-        [0, 2, 0, 9, 1, 8, 0, 0, 11, 16, 12, 0, 15, 0, 10, 13],
-        [5, 12, 0, 15, 0, 1, 7, 4, 0, 0, 16, 3, 10, 0, 13, 0],
-        [2, 0, 0, 0, 0, 3, 0, 9, 0, 0, 13, 0, 0, 12, 8, 5],
-        [0, 0, 4, 8, 0, 11, 15, 10, 5, 12, 0, 0, 0, 0, 9, 0],
-        [3, 16, 0, 0, 13, 0, 0, 0, 8, 0, 0, 0, 1, 0, 0, 0],
-        [0, 0, 15, 6, 0, 7, 0, 11, 14, 0, 0, 8, 0, 0, 5, 1],
-        [0, 10, 0, 14, 0, 13, 0, 0, 0, 11, 0, 0, 0, 6, 0, 7],
-        [11, 5, 1, 0, 9, 0, 0, 3, 6, 10, 7, 0, 12, 0, 15, 8],
-        [16, 7, 0, 0, 14, 0, 10, 8, 0, 1, 0, 0, 11, 13, 2, 0]
-
-    ]
 
 
 def formulate_sudoku(sudoku, n):
@@ -247,6 +260,96 @@ def formulate_sudoku(sudoku, n):
                                 ])
 
     return clauses
+
+
+def row_test(sudoku_array, n):
+    for row in range(0, n * n):
+        for col in range(0, n * n):
+            for col_pair in range(col + 1, n * n):
+                if (sudoku_array[row][col] != 0 and sudoku_array[row][col_pair] != 0 and
+                        sudoku_array[row][col] == sudoku_array[row][col_pair]):
+                    return False
+    return True
+
+
+def column_test(sudoku_array, n):
+    for col in range(0, n * n):
+        for row in range(0, n * n):
+            for row_pair in range(row + 1, n * n):
+                if (sudoku_array[row][col] != 0 and sudoku_array[row_pair][col] != 0 and
+                        sudoku_array[row][col] == sudoku_array[row_pair][col]):
+                    return False
+    return True
+
+
+def case_test(sudoku_array, n):
+    for row in range(0, n * n, n):
+        for col in range(0, n * n, n):
+            for row_case in range(row, row + n):
+                for col_case in range(col, col + n):
+                    for row_case_pair in range(row_case + 1, row_case + (n - row_case)):
+                        for col_case_pair in range(col_case + 1, col_case + (n - col_case)):
+                            if (sudoku_array[row_case][col_case] != 0 and sudoku_array[row_case_pair][col_case_pair] != 0 and
+                                    sudoku_array[row_case][col_case] == sudoku_array[row_case_pair][col_case_pair]):
+                                return False
+
+    return True
+
+
+def possible(n):
+    # [(x, y, value), ... ]
+    return list(product(list(range(0, n * n)), list(range(0, n * n)), list(range(1, n * n + 1))))
+
+
+def possible_set(n):
+    # [(x, y, value), ... ]
+    return set(product(list(range(0, n * n)), list(range(0, n * n)), list(range(1, n * n + 1))))
+
+
+def generate_glouton(n):
+    # TODO au lieu de generer d'un coup toute les positions et valeurs,
+    # le faire incrementalement
+    sudoku_array = np.zeros((n * n, n * n), dtype="int")
+
+    nb_to_generate = (4 * n * n)
+
+    possibility = possible(n)
+
+    finished = False
+
+    while not finished:
+        s = sudoku_array
+
+        for i in range(nb_to_generate + 1):
+            choice = random.choice(possibility)
+            s[choice[0]][choice[1]] = choice[2]
+
+        if row_test(s, n) and column_test(s, n) and case_test(s, n):
+            sudoku_array = s
+            finished = True
+
+    return sudoku_array
+
+
+def generate_glouton_with_verification(n):
+    # assume shape[0] == shape[1]
+    sudoku_array = np.zeros((n * n, n * n), dtype="int")
+    possibility = possible_set(n)
+
+    nb_to_generate = (4 * n * n)
+
+    while nb_to_generate != 0:
+        choice = random.choice(list(possibility))
+        sudoku_array[choice[0]][choice[1]] = choice[2]
+
+        if row_test(sudoku_array, n) and column_test(sudoku_array, n) and case_test(sudoku_array, n):
+            possibility.intersection(choice)
+            nb_to_generate -= 1
+
+        else:
+            sudoku_array[choice[0]][choice[1]] = 0
+
+    return sudoku_array
 
 
 def generate(n, difficulty):
