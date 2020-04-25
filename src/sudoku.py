@@ -61,14 +61,14 @@ def reset_var():
     variables_sudoku = {}
 
 
-def var(row, column, value, s_size):
+def var(row, column, value, n):
     """
     var doit obligatoirement etre comprit dans l'intervalle:
     [1; +infini]
     """
     global variables_sudoku
 
-    var = (row * s_size + column) + (pow(s_size, 2) * (value - 1)) + 1
+    var = (row * n + column) + (n**2 * (value - 1)) + 1
     variables_sudoku[var] = (row, column, value)
 
     return var
@@ -83,17 +83,25 @@ def printer(s, n):
     """
     Affichage pour sudoku
     """
-
-    for i in range(pow(n, 2)):
+    space = len(str(n**2))
+    
+    for i in range(n**2):
         if i != 0 and i % n == 0:
-            print('----------------------------')
+            print('-' * (((n+2)*space)*n + n))
 
         to_print = ''
-        for j in range(pow(n, 2)):
+        for j in range(n**2):
             if j != 0 and j % n == 0:
                 to_print += "|"
+                
+            v = "." if s[i][j] == 0 else str(s[i][j])
+                
+            if len(v) == space:
+                p = v
+            else:
+                p = v + " " * (space - len(v))
 
-            to_print += " " + str(s[i][j]) + " "
+            to_print += " " + p
 
         print(to_print)
 
@@ -126,12 +134,12 @@ def display(s_start, dict_s, n):
 
     s_end = translate(copy.deepcopy(s_start), dict_s)
 
-    print("############### Before ################\n")
+    print("## Original\n")
 
     printer(s_start, n)
     print()
 
-    print("############### After  ################\n")
+    print("## Solved\n")
 
     printer(s_end, n)
     print()
@@ -284,7 +292,7 @@ def formulate_sudoku(sudoku, n):
     return clauses
 
 
-def row_test(sudoku_array, n):
+def row_constraint(sudoku_array, n):
     for row in range(0, n * n):
         for col in range(0, n * n):
             for col_pair in range(col + 1, n * n):
@@ -294,7 +302,7 @@ def row_test(sudoku_array, n):
     return True
 
 
-def column_test(sudoku_array, n):
+def col_constraint(sudoku_array, n):
     for col in range(0, n * n):
         for row in range(0, n * n):
             for row_pair in range(row + 1, n * n):
@@ -304,7 +312,8 @@ def column_test(sudoku_array, n):
     return True
 
 
-def case_test(sudoku_array, n):
+def square_constraint(sudoku_array, n):
+    squared = n**2
     for row in range(0, squared, n):
         for col in range(0, squared, n):
 
@@ -338,33 +347,9 @@ def possible_set(n):
     return set(product(list(range(0, n * n)), list(range(0, n * n)), list(range(1, n * n + 1))))
 
 
-def generate_glouton(n):
-    # TODO au lieu de generer d'un coup toute les positions et valeurs,
-    # le faire incrementalement
-    sudoku_array = np.zeros((n * n, n * n), dtype="int")
-
-    nb_to_generate = (4 * n * n)
-
-    possibility = possible(n)
-
-    finished = False
-
-    while not finished:
-        s = sudoku_array
-
-        for i in range(nb_to_generate + 1):
-            choice = random.choice(possibility)
-            s[choice[0]][choice[1]] = choice[2]
-
-        if row_test(s, n) and column_test(s, n) and case_test(s, n):
-            sudoku_array = s
-            finished = True
-
-    return sudoku_array
-
 
 def generate_glouton_with_verification(n):
-    # assume shape[0] == shape[1]
+    
     sudoku_array = np.zeros((n * n, n * n), dtype="int")
     possibility = possible_set(n)
 
@@ -374,7 +359,7 @@ def generate_glouton_with_verification(n):
         choice = random.choice(list(possibility))
         sudoku_array[choice[0]][choice[1]] = choice[2]
 
-        if row_test(sudoku_array, n) and column_test(sudoku_array, n) and case_test(sudoku_array, n):
+        if row_constraint(sudoku_array, n) and col_constraint(sudoku_array, n) and square_constraint(sudoku_array, n):
             possibility.intersection(choice)
             nb_to_generate -= 1
 

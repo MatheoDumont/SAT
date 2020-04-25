@@ -94,8 +94,17 @@ def single_test():
     clauses = formulate_sudoku(s, 3)
 
     sol = DPLL(clauses)
-    print(sol)
+    
     display(s, sol, 3)
+
+def bigger_single_test():
+    s = s_16()
+
+    clauses = formulate_sudoku(s, 4)
+
+    sol = DPLL(clauses)
+    
+    display(s, sol, 4)
 
 
 def get_working_test(n):
@@ -146,4 +155,4 @@ def debug():
 
 
 if __name__ == '__main__':
-    single_test()
+    bigger_single_test()

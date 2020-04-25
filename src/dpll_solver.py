@@ -130,7 +130,7 @@ def unit_prop_and_pure_var(CNF, interp):
 
                 if lit in interp:
                     if interp[lit] is not to_be_interpreted_as:
-                        print_vars(interp, lineno())
+    
                         return False
                 else:
                     interp[lit] = to_be_interpreted_as
@@ -139,7 +139,7 @@ def unit_prop_and_pure_var(CNF, interp):
         for el in true_lit - false_lit:
             if el in interp:
                 if not interp[el]:
-                    print_vars(interp, lineno())
+    
                     return False
             else:
                 interp[el] = True
@@ -147,7 +147,7 @@ def unit_prop_and_pure_var(CNF, interp):
         for el in false_lit - true_lit:
             if el in interp:
                 if interp[el]:
-                    print_vars(interp, lineno())
+    
                     return False
             else:
                 interp[el] = False
@@ -155,7 +155,6 @@ def unit_prop_and_pure_var(CNF, interp):
         CNF = evaluate_assign_cnf(CNF, interp)
 
         if CNF is False:
-            print_vars(interp, lineno())
             return False
         elif CNF is True:
             return interp,
@@ -189,7 +188,7 @@ def DPLL(CNF, interp=None):
         else:
             interp, CNF = results
     else:
-        # print(interp)
+       
         return False
 
     var = choose_var(CNF)
