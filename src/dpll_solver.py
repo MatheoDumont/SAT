@@ -1,7 +1,13 @@
 from multiprocessing import Queue, Process
 from copy import deepcopy
 from cnf_utils import *
+from sudoku import print_vars
 
+import inspect
+
+def lineno():
+    """Returns the current line number in our program."""
+    return inspect.currentframe().f_back.f_lineno
 
 def evaluate_dc(entry, interpretation):
     """
@@ -122,6 +128,7 @@ def unit_prop_and_pure_var(CNF, interp):
 
                 if lit in interp:
                     if interp[lit] is not to_be_interpreted_as:
+                        print_vars(interp,lineno())
                         return False
                 else:
                     interp[lit] = to_be_interpreted_as
@@ -130,6 +137,7 @@ def unit_prop_and_pure_var(CNF, interp):
         for el in true_lit - false_lit:
             if el in interp:
                 if not interp[el]:
+                    print_vars(interp, lineno())
                     return False
             else:
                 interp[el] = True
@@ -137,6 +145,7 @@ def unit_prop_and_pure_var(CNF, interp):
         for el in false_lit - true_lit:
             if el in interp:
                 if interp[el]:
+                    print_vars(interp,lineno())
                     return False
             else:
                 interp[el] = False
@@ -144,6 +153,7 @@ def unit_prop_and_pure_var(CNF, interp):
         CNF = evaluate_assign_cnf(CNF, interp)
 
         if CNF is False:
+            print_vars(interp,lineno())
             return False
         elif CNF is True:
             return interp,
@@ -173,10 +183,11 @@ def DPLL(CNF, interp=None):
 
     if type(results) is tuple:
         if len(results) == 1:
-            return interp
+            return results[0]
         else:
             interp, CNF = results
     else:
+        # print(interp)
         return False
 
     var = choose_var(CNF)

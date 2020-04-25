@@ -2,7 +2,7 @@ from utils import validate, variables
 from cnf_utils import cnf_from_str, cnf_variables
 from dpll_solver import DPLL
 from sudoku import *
-
+import numpy as np
 import time
 
 
@@ -89,14 +89,13 @@ def bench_sudoku_resolution():
 
 
 def single_test():
-    sudoku = generate_glouton_with_verification(3)
-    print(sudoku)
+    s = sudoku()
 
-    clauses = formulate_sudoku(sudoku, 3)
+    clauses = formulate_sudoku(s, 3)
 
     sol = DPLL(clauses)
     print(sol)
-    display(sudoku, sol, 3)
+    display(s, sol, 3)
 
 
 def get_working_test(n):
@@ -108,13 +107,41 @@ def get_working_test(n):
         sudoku = generate_glouton_with_verification(n)
 
         clauses = formulate_sudoku(sudoku, n)
-        if DPLL(clauses):
+        sol = DPLL(clauses)
+        if sol:
             working = True
+        else:
+            print("not working")
 
     print(f'Time to generate SAT sudoku // size={n} // is {time.time() - t} ')
+    display(sudoku, sol, n)
 
     return sudoku
 
+def debug():
+    clauses = []
+    n = 2
+    squared = n**2
+    
+    for row in range(0, squared, n):
+        for col in range(0, squared, n):
+
+            for row_case in range(row, row + n):
+                for col_case in range(col, col + n):
+
+                    for row_case_pair in range(row_case, row+n):
+                        start = col_case+1 if row_case == row_case_pair else 0
+                        for col_case_pair in range(start, col+n):
+
+                            for value in range(1, squared+1):
+                                clauses.append([
+                                    (row_case, col_case, value, False),
+                                    (row_case_pair, col_case_pair, value, False)
+                                    # litteral(
+                                    #     var(row_case, col_case, value, squared), false=True),
+                                    # litteral(
+                                    #     var(row_case_pair, col_case_pair, value, squared), false=True)
+                                ])
 
 if __name__ == '__main__':
-    print(get_working_test(3))
+    single_test()

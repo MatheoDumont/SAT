@@ -14,18 +14,6 @@ formule propositionnelle
 variables_sudoku = {}
 
 
-def n_sudoku(n):
-    array = list()
-
-    for i in range(0, n * n):
-        array.append(list())
-        for j in range(0, n * n):
-            array[i].append(0)
-
-    print(array)
-    return array
-
-
 def sudoku():
     """
     Un sudoku de niveau simple
@@ -123,6 +111,11 @@ def translate(s, dict_s):
 
     return s
 
+def print_vars(interp, line):
+    print("----------------------------------------")
+    print(f"------------------{line}-------------------")
+    for key, val in interp.items():
+        print(unvar(key), val)
 
 def display(s_start, dict_s, n):
     """
@@ -237,27 +230,46 @@ def formulate_sudoku(sudoku, n):
        8 [-,-,-,-,-,-,-,-,-]
        = c+j
     """
-    for y_case in range(0, squared, n):
-        for x_case in range(0, squared, n):
 
-            for i in range(n):
-                for j in range(n):
+    for row in range(0, squared, n):
+        for col in range(0, squared, n):
 
-                    for value in range(1, squared + 1):
+            for row_case in range(row, row + n):
+                for col_case in range(col, col + n):
 
-                        for i_pair in range(i, n):
-                            for j_pair in range(j, n):
+                    for row_case_pair in range(row_case, row+n):
+                        start = col_case+1 if row_case == row_case_pair else 0
+                        for col_case_pair in range(start, col+n):
 
-                                # Pour ne pas avoir (not x or not x)
-                                if j_pair == j:
-                                    continue
-
+                            for value in range(1, squared+1):
                                 clauses.append([
                                     litteral(
-                                        var(y_case + i, x_case + j, value, squared), false=True),
+                                        var(row_case, col_case, value, squared), false=True),
                                     litteral(
-                                        var(y_case + i_pair, x_case + j_pair, value, squared), false=True)
+                                        var(row_case_pair, col_case_pair, value, squared), false=True)
                                 ])
+
+    # for y_case in range(0, squared, n):
+    #     for x_case in range(0, squared, n):
+
+    #         # i,j in [0, n-1]
+    #         for i in range(n):
+    #             for j in range(n):
+
+    #                 for value in range(1, squared + 1):
+
+    #                     for i_pair in range(i, n):
+    #                         for j_pair in range(j, n):
+
+    #                             # Pour ne pas avoir (not x or not x)
+    #                             if j_pair == j: continue
+
+    #                             clauses.append([
+    #                                 litteral(
+    #                                     var(y_case + i, x_case + j, value, squared), false=True),
+    #                                 litteral(
+    #                                     var(y_case + i_pair, x_case + j_pair, value, squared), false=True)
+    #                             ])
 
     return clauses
 
@@ -285,10 +297,14 @@ def column_test(sudoku_array, n):
 def case_test(sudoku_array, n):
     for row in range(0, n * n, n):
         for col in range(0, n * n, n):
+
             for row_case in range(row, row + n):
                 for col_case in range(col, col + n):
-                    for row_case_pair in range(row_case + 1, row_case + (n - row_case)):
-                        for col_case_pair in range(col_case + 1, col_case + (n - col_case)):
+
+                    for row_case_pair in range(row_case, row+n):
+                        start = col_case+1 if row_case == row_case_pair else 0
+                        for col_case_pair in range(start, col+n):
+
                             if (sudoku_array[row_case][col_case] != 0 and sudoku_array[row_case_pair][col_case_pair] != 0 and
                                     sudoku_array[row_case][col_case] == sudoku_array[row_case_pair][col_case_pair]):
                                 return False
