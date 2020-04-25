@@ -111,11 +111,13 @@ def translate(s, dict_s):
 
     return s
 
+
 def print_vars(interp, line):
     print("----------------------------------------")
     print(f"------------------{line}-------------------")
     for key, val in interp.items():
         print(unvar(key), val)
+
 
 def display(s_start, dict_s, n):
     """
@@ -234,14 +236,22 @@ def formulate_sudoku(sudoku, n):
     for row in range(0, squared, n):
         for col in range(0, squared, n):
 
-            for row_case in range(row, row + n):
-                for col_case in range(col, col + n):
+            for value in range(1, squared+1):
 
-                    for row_case_pair in range(row_case, row+n):
-                        start = col_case+1 if row_case == row_case_pair else 0
-                        for col_case_pair in range(start, col+n):
+                for row_case in range(row, row + n):
+                    for col_case in range(col, col + n):
 
-                            for value in range(1, squared+1):
+                        for col_case_pair in range(col_case+1, col + n):
+                            clauses.append([
+                                litteral(
+                                    var(row_case, col_case, value, squared), false=True),
+                                litteral(
+                                    var(row_case, col_case_pair, value, squared), false=True)
+                            ])
+
+                        for row_case_pair in range(row_case+1, row+n):
+                            for col_case_pair in range(col, col+n):
+
                                 clauses.append([
                                     litteral(
                                         var(row_case, col_case, value, squared), false=True),
@@ -295,19 +305,25 @@ def column_test(sudoku_array, n):
 
 
 def case_test(sudoku_array, n):
-    for row in range(0, n * n, n):
-        for col in range(0, n * n, n):
+    for row in range(0, squared, n):
+        for col in range(0, squared, n):
 
-            for row_case in range(row, row + n):
-                for col_case in range(col, col + n):
+            for value in range(1, squared+1):
 
-                    for row_case_pair in range(row_case, row+n):
-                        start = col_case+1 if row_case == row_case_pair else 0
-                        for col_case_pair in range(start, col+n):
+                for row_case in range(row, row + n):
+                    for col_case in range(col, col + n):
 
-                            if (sudoku_array[row_case][col_case] != 0 and sudoku_array[row_case_pair][col_case_pair] != 0 and
-                                    sudoku_array[row_case][col_case] == sudoku_array[row_case_pair][col_case_pair]):
+                        for col_case_pair in range(col_case+1, col + n):
+                            if (sudoku_array[row_case][col_case] != 0 and sudoku_array[row_case][col_case_pair] != 0 and
+                                    sudoku_array[row_case][col_case] == sudoku_array[row_case][col_case_pair]):
                                 return False
+
+                        for row_case_pair in range(row_case+1, row+n):
+                            for col_case_pair in range(col, col+n):
+
+                                if (sudoku_array[row_case][col_case] != 0 and sudoku_array[row_case_pair][col_case_pair] != 0 and
+                                        sudoku_array[row_case][col_case] == sudoku_array[row_case_pair][col_case_pair]):
+                                    return False
 
     return True
 
