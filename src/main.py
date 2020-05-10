@@ -127,32 +127,5 @@ def get_working_test(n):
 
     return sudoku
 
-
-def debug():
-    clauses = []
-    n = 2
-    squared = n**2
-
-    for row in range(0, squared, n):
-        for col in range(0, squared, n):
-
-            for row_case in range(row, row + n):
-                for col_case in range(col, col + n):
-
-                    for row_case_pair in range(row_case, row+n):
-                        start = col_case+1 if row_case == row_case_pair else 0
-                        for col_case_pair in range(start, col+n):
-
-                            for value in range(1, squared+1):
-                                clauses.append([
-                                    (row_case, col_case, value, False),
-                                    (row_case_pair, col_case_pair, value, False)
-                                    # litteral(
-                                    #     var(row_case, col_case, value, squared), false=True),
-                                    # litteral(
-                                    #     var(row_case_pair, col_case_pair, value, squared), false=True)
-                                ])
-
-
 if __name__ == '__main__':
-    bigger_single_test()
+    get_working_test(3)
